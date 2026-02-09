@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SolarPlex Compass — Impact Pumps</title>
+  <meta name="description" content="Estimate SolarPlex SPX-800-5 flow at a given total dynamic head (TDH), view daily output (low/average/high insolation day), and run PV voltage checks using datasheet curves. Everything runs in your browser." />
+  <meta name="theme-color" content="#006090" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23006090'/%3E%3Cpath d='M18 40c6-10 10-18 14-18s8 8 14 18' fill='none' stroke='%23F6F8FA' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M18 44h28' fill='none' stroke='%2370B020' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta property="og:title" content="SolarPlex Compass — Impact Pumps" />
+  <meta property="og:description" content="Quick sizing: flow vs head, daily output (low/average/high insolation), and PV voltage checks for SolarPlex SPX-800-5 using datasheet curves." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <style>
+    :root {
+      --blue: #006090;
+      --green: #70B020;
+      --dark: #0B1320;
+      --light: #F6F8FA;
+      --border: rgba(0,0,0,0.08);
+      --muted: rgba(0,0,0,0.55);
+      --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 30px rgba(0,0,0,0.04);
+      --radius: 18px;
+      --ring: rgba(0,96,144,0.25);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--dark);
+      background: var(--light);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 16px 40px;
+    }
+
+    .header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 260px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: var(--blue);
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: white;
+      color: rgba(0,0,0,0.65);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+      white-space: nowrap;
+    }
+    .badge.blue { background: rgba(0,96,144,0.08); border-color: rgba(0,96,144,0.12); color: var(--blue); }
+    .badge.green { background: rgba(112,176,32,0.10); border-color: rgba(112,176,32,0.18); color: #2F6B00; }
+    .badge.red { background: rgba(239,68,68,0.10); border-color: rgba(239,68,68,0.18); color: #B42318; }
+    .badge.amber { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.22); color: #8A4B00; }
+
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 980px) {
+      .grid {
+        grid-template-columns: 5fr 7fr;
+        align-items: start;
+      }
+    }
+
+    .stack { display: grid; gap: 16px; }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .cardHeader {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .cardTitle {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .cardSub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+    .cardBody { padding: 14px 16px; }
+
+    .formGrid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 560px) {
+      .formGrid.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: rgba(0,0,0,0.70);
+      font-weight: 600;
+    }
+    .hint {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(0,0,0,0.45);
+      float: right;
+    }
+
+    input, select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.12);
+      outline: none;
+      font-size: 14px;
+      color: var(--dark);
+      background: white;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+    input:focus, select:focus {
+      border-color: rgba(0,96,144,0.35);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    /* Mobile polish: prevent iOS zoom-on-focus (requires >=16px inputs) */
+    @media (max-width: 520px) {
+      input, select { font-size: 16px; }
+    }
+
+    .tdhBox {
+      border-radius: 16px;
+      border: 1px solid rgba(0,96,144,0.16);
+      background: rgba(0,96,144,0.05);
+      padding: 12px;
+    }
+    .tdhLabel { font-size: 12px; color: rgba(0,0,0,0.55); font-weight: 700; }
+    .tdhValue {
+      margin-top: 6px;
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    .tdhBreakdown {
+      margin-top: 6px;
+      font-size: 11px;
+      color: rgba(0,0,0,0.50);
+    }
+
+    .kpiRow {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 560px) {
+      .kpiRow { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .kpi {
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: white;
+      padding: 12px;
+    }
+    .kpi.low { border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.06); }
+    .kpi.avg { border-color: rgba(0,96,144,0.18); background: rgba(0,96,144,0.05); }
+    .kpi.high { border-color: rgba(112,176,32,0.22); background: rgba(112,176,32,0.06); }
+
+    .kpiTitle { font-size: 12px; color: rgba(0,0,0,0.55); font-weight: 700; }
+    .kpiMain { margin-top: 8px; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+    .kpiSub { margin-top: 4px; font-size: 12px; color: rgba(0,0,0,0.62); }
+
+    .bigNumber {
+      font-size: 40px;
+      font-weight: 900;
+      color: var(--blue);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    .unit { font-size: 16px; font-weight: 700; color: rgba(0,0,0,0.45); }
+
+    .callout {
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(246,248,250,0.9);
+      padding: 12px;
+      font-size: 12px;
+      color: rgba(0,0,0,0.65);
+    }
+
+    .alert {
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid;
+      background: rgba(0,0,0,0.02);
+    }
+    .alert.ok { border-color: rgba(112,176,32,0.28); background: rgba(112,176,32,0.08); }
+    .alert.warn { border-color: rgba(245,158,11,0.30); background: rgba(245,158,11,0.08); }
+    .alert.bad { border-color: rgba(239,68,68,0.28); background: rgba(239,68,68,0.08); }
+    .alert.info { border-color: rgba(0,96,144,0.22); background: rgba(0,96,144,0.07); }
+    .alertTitle { font-size: 13px; font-weight: 800; }
+    .alertMsg { margin-top: 6px; font-size: 13px; color: rgba(0,0,0,0.72); }
+
+    .chartWrap {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--light);
+      overflow: hidden;
+      position: relative;
+    }
+    .chartFallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(0,0,0,0.62);
+      background: var(--light);
+      z-index: 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 220px;
+      position: relative;
+      z-index: 2;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: rgba(0,0,0,0.72);
+      font-size: 13px;
+    }
+    li { margin: 5px 0; }
+
+    .footer {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(0,0,0,0.45);
+    }
+
+    .muted { color: rgba(0,0,0,0.55); }
+    .small { font-size: 11px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>SolarPlex Compass</h1>
+          <div class="subtitle">SolarPlex SPX-800-5 — datasheet-curve sizing estimate (in-browser)</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge">Impact Pumps</span>
+        <span class="badge">SPX-800-5</span>
+        <span class="badge blue" id="badgeTdh">TDH: — m</span>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="card" style="margin-top:16px;">
+        <div class="cardBody">
+          <div class="alert warn">
+            <div class="alertTitle">JavaScript is disabled</div>
+            <div class="alertMsg">SolarPlex Compass needs JavaScript to calculate results and draw charts. Open this file in a full browser (Chrome/Safari) with JavaScript enabled.</div>
+          </div>
+        </div>
+      </div>
+    </noscript>
+
+
+    <div class="grid">
+      <!-- Inputs -->
+      <div class="stack">
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">1) Site / Head</div>
+              <div class="cardSub">TDH = static lift + extra pressure head + pipe friction allowance</div>
+            </div>
+            <span class="badge blue" id="tdhBadge">TDH: — m</span>
+          </div>
+          <div class="cardBody">
+            <div class="formGrid two">
+              <label>
+                Static lift <span class="hint">m</span>
+                <input id="staticLift" type="number" step="0.1" min="0" inputmode="decimal" value="20" />
+              </label>
+              <label>
+                Extra pressure head (optional) <span class="hint">m</span>
+                <input id="pressureHead" type="number" step="0.1" min="0" inputmode="decimal" value="0" />
+              </label>
+              <label>
+                Pipe friction allowance (optional) <span class="hint">m</span>
+                <input id="frictionHead" type="number" step="0.1" min="0" inputmode="decimal" value="0" />
+              </label>
+
+              <div class="tdhBox">
+                <div class="tdhLabel">Total Dynamic Head (TDH)</div>
+                <div class="tdhValue"><span id="tdhValue">—</span> <span class="unit">m</span></div>
+                <div class="tdhBreakdown" id="tdhBreakdown">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">2) Solar / PV</div>
+              <div class="cardSub">Daily output uses datasheet PV curves. Voc/Vmp checks are optional (only run if you enter values).</div>
+            </div>
+            <span class="badge" id="pvCurveBadge">PV curve: —</span>
+          </div>
+          <div class="cardBody">
+            <div class="formGrid two">
+              <label>
+                PV array choice
+                <select id="pvChoice">
+                  <option value="1100">1100 Wp (datasheet)</option>
+                  <option value="1330" selected>1330 Wp (datasheet)</option>
+                  <option value="other">Other (choose nearest curve)</option>
+                </select>
+              </label>
+
+              <label id="pvOtherWrap" style="display:none;">
+                PV Wp (Other) <span class="hint">Wp</span>
+                <input id="pvOtherWp" type="number" step="1" min="0" inputmode="decimal" value="1200" placeholder="e.g., 1200" />
+              </label>
+
+              <label>
+                Panel string Voc (optional) <span class="hint">V</span>
+                <input id="stringVoc" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 92" />
+              </label>
+              <label>
+                Panel string Vmp (optional) <span class="hint">V</span>
+                <input id="stringVmp" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 76" />
+              </label>
+            </div>
+
+            <div class="callout" style="margin-top:12px;">
+              <div style="font-weight:800;">PV curve used for daily output</div>
+              <div style="margin-top:6px;" id="pvCurveLabel">—</div>
+              <div class="small muted" style="margin-top:6px;">
+                Simple rule: “Other” picks the closest datasheet curve (1100 Wp or 1330 Wp) and labels it clearly.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">3) Power level</div>
+              <div class="cardSub">Select the datasheet “pump curve at input power” (no MPPT modelling).</div>
+            </div>
+            <span class="badge" id="curveRangeBadge">Curve range: —</span>
+          </div>
+          <div class="cardBody">
+            <div class="formGrid two">
+              <label>
+                Input power curve
+                <select id="power">
+                  <option value="100We">100We</option>
+                  <option value="200We">200We</option>
+                  <option value="400We">400We</option>
+                  <option value="600We">600We</option>
+                  <option value="800We" selected>800We</option>
+                </select>
+              </label>
+
+              <div class="callout">
+                <div style="font-weight:800;">How this is used</div>
+                <div class="small muted" style="margin-top:6px;">
+                  Expected flow uses the selected pump curve (head↔flow) and bounded interpolation at your TDH.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="stack">
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">A) Expected flow</div>
+              <div class="cardSub">From the selected pump curve at your TDH (bounded interpolation; no extrapolation).</div>
+            </div>
+            <span class="badge" id="feasibleBadge">—</span>
+          </div>
+          <div class="cardBody">
+            <div class="formGrid two" style="align-items:start;">
+              <div>
+                <div class="muted small" style="font-weight:800;">Expected flow</div>
+                <div style="margin-top:10px;">
+                  <span class="bigNumber" id="expectedFlow">—</span>
+                  <span class="unit">m³/h</span>
+                </div>
+                <div class="small muted" style="margin-top:8px;" id="flowContext">—</div>
+
+                <div id="feasibilityAlert" style="margin-top:12px; display:none;" class="alert bad">
+                  <div class="alertTitle">Not feasible at this power curve</div>
+                  <div class="alertMsg" id="feasibilityMsg">—</div>
+                  <div class="small muted" style="margin-top:8px;">
+                    Suggestion: select a higher power curve (if available), and/or reduce TDH (lift/pressure/friction).
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="small muted" style="margin-bottom:8px;">Flow (m³/h) vs Head (m)</div>
+                <div class="chartWrap">
+                  <div class="chartFallback" id="chartFallback">Charts require JavaScript. If you opened this from an email/attachment preview, save the file and open it in Chrome/Safari.</div>
+                  <canvas id="curveChart" width="900" height="440"></canvas>
+                </div>
+                <div class="small muted" style="margin-top:8px;">
+                  Marker shows the estimated operating point (flow vs TDH) on the selected curve.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">B) Daily output (from datasheet)</div>
+              <div class="cardSub">Low / Average / High insolation day (m³/day + irrigable area in acres at 4 mm/day) at your TDH.</div>
+            </div>
+            <span class="badge" id="dailyCurveBadge">—</span>
+          </div>
+          <div class="cardBody">
+            <div class="kpiRow">
+              <div class="kpi low">
+                <div class="kpiTitle">Low day</div>
+                <div class="kpiMain" id="lowVol">—</div>
+                <div class="kpiSub" id="lowArea">—</div>
+              </div>
+              <div class="kpi avg">
+                <div class="kpiTitle">Average day</div>
+                <div class="kpiMain" id="avgVol">—</div>
+                <div class="kpiSub" id="avgArea">—</div>
+              </div>
+              <div class="kpi high">
+                <div class="kpiTitle">High day</div>
+                <div class="kpiMain" id="highVol">—</div>
+                <div class="kpiSub" id="highArea">—</div>
+              </div>
+            </div>
+
+            <div class="callout" style="margin-top:12px;">
+              <div style="font-weight:800;">Notes</div>
+              <ul class="small muted" id="dailyNotes">
+                <li id="notePvCurve">—</li>
+                <li>Bounded interpolation: values are clamped to the nearest endpoint if TDH is outside the curve range (no extrapolation).</li>
+                <li>Rare negative values in digitised curves are treated as ~0 in the UI (physically ≈0 output).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">C) PV voltage checks (from user guide)</div>
+              <div class="cardSub">Optional: Voc max check + Vmp sufficiency check (by head and selected power). Leave Voc/Vmp blank to skip.</div>
+            </div>
+            <span class="badge" id="checksBadge">Checks skipped</span>
+          </div>
+          <div class="cardBody">
+            <div class="callout">
+              <div style="font-weight:800;">Thresholds used</div>
+              <div class="small muted" style="margin-top:6px;" id="thresholdLine">—</div>
+              <div class="small muted" style="margin-top:6px;" id="requiredVmpLine">—</div>
+            </div>
+
+            <div id="voltageFindings" style="margin-top:12px; display:grid; gap:10px;"></div>
+
+            <div class="small muted" style="margin-top:10px;">
+              Note: for full 800 W, aim Vmp (STC) &gt; <span id="vmpTarget">—</span> V.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">Installation reminders</div>
+              <div class="cardSub">Short checklist from the user guide (installer checks).</div>
+            </div>
+          </div>
+          <div class="cardBody">
+            <ul id="installChecklist"></ul>
+            <div class="callout" style="margin-top:12px;">
+              <div class="small muted">
+                Disclaimer: Sizing estimate based on datasheet curves; field results vary; validate on site.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">Built for Impact Pumps • SolarPlex Compass • Bounded interpolation (no extrapolation)</div>
+  </div>
+
+  <script>
+    // MUST: exact embed of solarplex_spx8005_curves_simple.json
+    const SOLARPLEX_DATA = {"product":{"brand":"Impact Pumps","model":"SolarPlex SPX-800-5","datasheet":"SolarPlex_SPX-800-5_Datasheet_v3-2.pdf","user_guide":"SOLARPLEX-SPX-800-5-Userguide-v2-4-100824.pdf","brand_colors":{"primary_blue":"#006090","primary_green":"#70B020","neutral_dark":"#0B1320","neutral_light":"#F6F8FA"}},"specs_from_datasheet":{"rated_power_w":800,"operating_voltage_range_v":[30,100],"max_flow_m3_per_h":5.4,"max_head_m":75,"inlet_outlet_thread_inch":1,"protection_rating":"IP56","warranty_years":2,"notes":["Fresh water, 0\u201335\u00b0C. pH 6.5\u20138.5. Sand \u2264 1 g/L. Salinity \u2264 7 g/L.","Control inputs: ON/OFF or PWM; dry-run switch input; tank overflow switch input; RS-485."]},"curves_digitised_from_datasheet_charts":{"pump_curve_head_vs_flow_by_power":{"800We":[{"flow_m3_per_h":0.0,"head_m":74.86},{"flow_m3_per_h":0.5,"head_m":68.38},{"flow_m3_per_h":1.0,"head_m":61.91},{"flow_m3_per_h":1.5,"head_m":55.43},{"flow_m3_per_h":2.0,"head_m":48.95},{"flow_m3_per_h":2.5,"head_m":42.47},{"flow_m3_per_h":3.0,"head_m":35.99},{"flow_m3_per_h":3.5,"head_m":29.51},{"flow_m3_per_h":4.0,"head_m":23.03},{"flow_m3_per_h":4.5,"head_m":16.55},{"flow_m3_per_h":5.0,"head_m":10.07},{"flow_m3_per_h":5.41,"head_m":4.76}],"600We":[{"flow_m3_per_h":0.0,"head_m":60.8},{"flow_m3_per_h":0.5,"head_m":54.99},{"flow_m3_per_h":1.0,"head_m":49.19},{"flow_m3_per_h":1.5,"head_m":43.38},{"flow_m3_per_h":2.0,"head_m":37.58},{"flow_m3_per_h":2.5,"head_m":31.77},{"flow_m3_per_h":3.0,"head_m":25.97},{"flow_m3_per_h":3.5,"head_m":20.16},{"flow_m3_per_h":4.0,"head_m":14.36},{"flow_m3_per_h":4.5,"head_m":8.55},{"flow_m3_per_h":5.0,"head_m":2.75},{"flow_m3_per_h":5.25,"head_m":0.0}],"400We":[{"flow_m3_per_h":0.0,"head_m":43.45},{"flow_m3_per_h":0.5,"head_m":38.52},{"flow_m3_per_h":1.0,"head_m":33.6},{"flow_m3_per_h":1.5,"head_m":28.67},{"flow_m3_per_h":2.0,"head_m":23.74},{"flow_m3_per_h":2.5,"head_m":18.81},{"flow_m3_per_h":3.0,"head_m":13.88},{"flow_m3_per_h":3.5,"head_m":8.95},{"flow_m3_per_h":4.0,"head_m":4.02},{"flow_m3_per_h":4.43,"head_m":0.0}],"200We":[{"flow_m3_per_h":0.0,"head_m":28.33},{"flow_m3_per_h":0.5,"head_m":24.24},{"flow_m3_per_h":1.0,"head_m":20.16},{"flow_m3_per_h":1.5,"head_m":16.07},{"flow_m3_per_h":2.0,"head_m":11.98},{"flow_m3_per_h":2.5,"head_m":7.89},{"flow_m3_per_h":3.0,"head_m":3.81},{"flow_m3_per_h":3.49,"head_m":0.0}],"100We":[{"flow_m3_per_h":0.0,"head_m":13.63},{"flow_m3_per_h":0.5,"head_m":10.76},{"flow_m3_per_h":1.0,"head_m":7.88},{"flow_m3_per_h":1.5,"head_m":5.01},{"flow_m3_per_h":2.0,"head_m":2.13},{"flow_m3_per_h":2.4,"head_m":0.0}]},"min_vmp_vs_head_by_power":{"800We":[{"head_m":0.0,"min_vmp_v":65.88},{"head_m":5.0,"min_vmp_v":66.14},{"head_m":10.0,"min_vmp_v":66.28},{"head_m":15.0,"min_vmp_v":66.47},{"head_m":20.0,"min_vmp_v":66.7},{"head_m":25.0,"min_vmp_v":66.85},{"head_m":30.0,"min_vmp_v":67.01},{"head_m":35.0,"min_vmp_v":67.25},{"head_m":40.0,"min_vmp_v":67.43},{"head_m":45.0,"min_vmp_v":67.57},{"head_m":50.0,"min_vmp_v":67.81},{"head_m":55.0,"min_vmp_v":68.28},{"head_m":60.0,"min_vmp_v":68.98},{"head_m":65.0,"min_vmp_v":69.85},{"head_m":66.49,"min_vmp_v":70}],"600We":[{"head_m":0.0,"min_vmp_v":60.82},{"head_m":5.0,"min_vmp_v":61.01},{"head_m":10.0,"min_vmp_v":61.25},{"head_m":15.0,"min_vmp_v":61.49},{"head_m":20.0,"min_vmp_v":61.75},{"head_m":25.0,"min_vmp_v":62.0},{"head_m":30.0,"min_vmp_v":62.23},{"head_m":35.0,"min_vmp_v":62.46},{"head_m":40.0,"min_vmp_v":62.75},{"head_m":45.0,"min_vmp_v":63.46},{"head_m":50.0,"min_vmp_v":64.43},{"head_m":55.0,"min_vmp_v":65.69},{"head_m":60.0,"min_vmp_v":67.22},{"head_m":61.45,"min_vmp_v":67.67}],"400We":[{"head_m":0.0,"min_vmp_v":51.02},{"head_m":5.0,"min_vmp_v":51.02},{"head_m":10.0,"min_vmp_v":51.26},{"head_m":15.0,"min_vmp_v":51.69},{"head_m":20.0,"min_vmp_v":52.43},{"head_m":25.0,"min_vmp_v":53.45},{"head_m":30.0,"min_vmp_v":54.61},{"head_m":35.0,"min_vmp_v":55.91},{"head_m":40.0,"min_vmp_v":57.27},{"head_m":43.54,"min_vmp_v":58.24}],"200We":[{"head_m":0.0,"min_vmp_v":41.01},{"head_m":5.0,"min_vmp_v":41.25},{"head_m":10.0,"min_vmp_v":41.69},{"head_m":15.0,"min_vmp_v":42.52},{"head_m":20.0,"min_vmp_v":44.11},{"head_m":25.0,"min_vmp_v":46.49},{"head_m":29.71,"min_vmp_v":49.17}],"100We":[{"head_m":0.0,"min_vmp_v":31.55},{"head_m":5.0,"min_vmp_v":32.19},{"head_m":10.0,"min_vmp_v":33.58},{"head_m":14.48,"min_vmp_v":36.01}]},"daily_output":{"units":{"head_m":"m","volume_m3_per_day":"m3/day","area_acres":"acres"},"assumptions":["Curves digitised from datasheet plots; use interpolation inside the provided ranges, clamp outside (no extrapolation).","Daily output curves provided for 1330 Wp and 1100 Wp PV arrays under low/average/high irradiance day profiles as shown in the datasheet."],"pv_array_1330wp":{"volume_m3_per_day":{"low":[{"head_m":48.0,"volume_m3_per_day":0.36},{"head_m":40.0,"volume_m3_per_day":3.82},{"head_m":30.0,"volume_m3_per_day":8.55},{"head_m":20.0,"volume_m3_per_day":14.45},{"head_m":15.0,"volume_m3_per_day":18.09},{"head_m":10.0,"volume_m3_per_day":22.73},{"head_m":7.5,"volume_m3_per_day":25.91},{"head_m":5.0,"volume_m3_per_day":29.45}],"average":[{"head_m":60.0,"volume_m3_per_day":1.09},{"head_m":50.0,"volume_m3_per_day":6.73},{"head_m":40.0,"volume_m3_per_day":13.27},{"head_m":30.0,"volume_m3_per_day":20.36},{"head_m":20.0,"volume_m3_per_day":28.73},{"head_m":15.0,"volume_m3_per_day":33.45},{"head_m":10.0,"volume_m3_per_day":38.91},{"head_m":7.5,"volume_m3_per_day":41.82},{"head_m":5.0,"volume_m3_per_day":45.27}],"high":[{"head_m":60.0,"volume_m3_per_day":6.0},{"head_m":50.0,"volume_m3_per_day":13.27},{"head_m":40.0,"volume_m3_per_day":21.27},{"head_m":30.0,"volume_m3_per_day":30.18},{"head_m":20.0,"volume_m3_per_day":40.0},{"head_m":15.0,"volume_m3_per_day":45.27},{"head_m":10.0,"volume_m3_per_day":51.09},{"head_m":7.5,"volume_m3_per_day":54.18},{"head_m":5.0,"volume_m3_per_day":57.27}]},"area_acres_at_4mm_per_day":{"low":[{"head_m":48.0,"area_acres":0.02},{"head_m":40.0,"area_acres":0.229},{"head_m":30.0,"area_acres":0.524},{"head_m":20.0,"area_acres":0.885},{"head_m":15.0,"area_acres":1.109},{"head_m":10.0,"area_acres":1.394},{"head_m":7.5,"area_acres":1.587},{"head_m":5.0,"area_acres":1.811}],"average":[{"head_m":60.0,"area_acres":0.061},{"head_m":50.0,"area_acres":0.407},{"head_m":40.0,"area_acres":0.804},{"head_m":30.0,"area_acres":1.251},{"head_m":20.0,"area_acres":1.76},{"head_m":15.0,"area_acres":2.055},{"head_m":10.0,"area_acres":2.381},{"head_m":7.5,"area_acres":2.564},{"head_m":5.0,"area_acres":2.773}],"high":[{"head_m":60.0,"area_acres":0.366},{"head_m":50.0,"area_acres":0.814},{"head_m":40.0,"area_acres":1.307},{"head_m":30.0,"area_acres":1.852},{"head_m":20.0,"area_acres":2.452},{"head_m":15.0,"area_acres":2.778},{"head_m":10.0,"area_acres":3.134},{"head_m":7.5,"area_acres":3.317},{"head_m":5.0,"area_acres":3.469}]}},"pv_array_1100wp":{"volume_m3_per_day":{"low":[{"head_m":39.0,"volume_m3_per_day":0.88},{"head_m":30.0,"volume_m3_per_day":4.96},{"head_m":20.0,"volume_m3_per_day":10.62},{"head_m":15.0,"volume_m3_per_day":14.25},{"head_m":10.0,"volume_m3_per_day":18.94},{"head_m":7.5,"volume_m3_per_day":22.12},{"head_m":5.0,"volume_m3_per_day":26.11}],"average":[{"head_m":60.0,"volume_m3_per_day":-0.44},{"head_m":50.0,"volume_m3_per_day":4.07},{"head_m":40.0,"volume_m3_per_day":9.2},{"head_m":30.0,"volume_m3_per_day":15.04},{"head_m":20.0,"volume_m3_per_day":22.3},{"head_m":15.0,"volume_m3_per_day":26.81},{"head_m":10.0,"volume_m3_per_day":32.74},{"head_m":7.5,"volume_m3_per_day":36.73},{"head_m":5.0,"volume_m3_per_day":41.33}],"high":[{"head_m":60.0,"volume_m3_per_day":5.49},{"head_m":50.0,"volume_m3_per_day":11.5},{"head_m":40.0,"volume_m3_per_day":18.5},{"head_m":30.0,"volume_m3_per_day":26.37},{"head_m":20.0,"volume_m3_per_day":35.4},{"head_m":15.0,"volume_m3_per_day":40.71},{"head_m":10.0,"volume_m3_per_day":46.9},{"head_m":7.5,"volume_m3_per_day":50.27},{"head_m":5.0,"volume_m3_per_day":53.63}]},"area_acres_at_4mm_per_day":{"low":[{"head_m":39.0,"area_acres":0.05},{"head_m":30.0,"area_acres":0.3},{"head_m":20.0,"area_acres":0.655},{"head_m":15.0,"area_acres":0.88},{"head_m":10.0,"area_acres":1.17},{"head_m":7.5,"area_acres":1.36},{"head_m":5.0,"area_acres":1.61}],"average":[{"head_m":60.0,"area_acres":-0.032},{"head_m":50.0,"area_acres":0.25},{"head_m":40.0,"area_acres":0.565},{"head_m":30.0,"area_acres":0.93},{"head_m":20.0,"area_acres":1.38},{"head_m":15.0,"area_acres":1.66},{"head_m":10.0,"area_acres":2.02},{"head_m":7.5,"area_acres":2.275},{"head_m":5.0,"area_acres":2.55}],"high":[{"head_m":60.0,"area_acres":0.33},{"head_m":50.0,"area_acres":0.71},{"head_m":40.0,"area_acres":1.14},{"head_m":30.0,"area_acres":1.625},{"head_m":20.0,"area_acres":2.19},{"head_m":15.0,"area_acres":2.515},{"head_m":10.0,"area_acres":2.895},{"head_m":7.5,"area_acres":3.11},{"head_m":5.0,"area_acres":3.32}]}}}},"installer_checks_from_user_guide":{"max_total_voc_v_series":105,"full_power_vmp_target_v":74,"checklist":["Prime pump and inlet pipe completely with water before running.","Isolate all electrical power before priming or servicing.","Keep connectors clean and dry; confirm polarity (red = +).","For full 800 W, design PV so combined Vmp (STC) is > 74 V (often 2 panels in series).","Ensure total Voc (series) stays below 105 V to avoid over-voltage shutdown."]},"generated_utc":"2026-02-08T22:26:43Z","quality_note":"Digitisation is approximate (from raster charts). If you want higher accuracy, provide the original vector chart data or allow a WebPlotDigitizer export."};
+
+    function num(v) {
+      if (v === null || v === undefined) return null;
+      const s = String(v).trim();
+      if (!s) return null;
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmt(n, decimals=2) {
+      if (!Number.isFinite(n)) return "—";
+      return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    // Bounded linear interpolation for 1D arrays that are monotonic in x (used for daily curves & Vmp curves)
+    function interp1(points, xKey, yKey, x) {
+      const pts = (points || [])
+        .map(p => ({ x: Number(p[xKey]), y: Number(p[yKey]) }))
+        .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y))
+        .sort((a,b) => a.x - b.x);
+
+      if (!pts.length || !Number.isFinite(x)) return null;
+      if (x <= pts[0].x) return pts[0].y;
+      if (x >= pts[pts.length - 1].x) return pts[pts.length - 1].y;
+
+      for (let i=0; i<pts.length-1; i++) {
+        const a = pts[i], b = pts[i+1];
+        if (x >= a.x && x <= b.x) {
+          const t = (x - a.x) / (b.x - a.x || 1);
+          return a.y + t * (b.y - a.y);
+        }
+      }
+      return null;
+    }
+
+    // Pump curve interpolation: head->flow on a polyline that may not be perfectly monotonic
+    // - bounded: clamp to nearest endpoint outside range (no extrapolation)
+    function flowAtHeadFromPumpCurve(curvePoints, head) {
+      const pts = (curvePoints || [])
+        .map(p => ({ head_m: Number(p.head_m), flow_m3_per_h: Number(p.flow_m3_per_h) }))
+        .filter(p => Number.isFinite(p.head_m) && Number.isFinite(p.flow_m3_per_h));
+
+      if (!pts.length || !Number.isFinite(head)) return null;
+
+      let minHead = pts[0].head_m, maxHead = pts[0].head_m;
+      let minHeadFlow = pts[0].flow_m3_per_h, maxHeadFlow = pts[0].flow_m3_per_h;
+
+      for (const p of pts) {
+        if (p.head_m < minHead) { minHead = p.head_m; minHeadFlow = p.flow_m3_per_h; }
+        if (p.head_m > maxHead) { maxHead = p.head_m; maxHeadFlow = p.flow_m3_per_h; }
+      }
+
+      if (head >= maxHead) return maxHeadFlow;   // clamp (near shutoff)
+      if (head <= minHead) return minHeadFlow;   // clamp (near open flow)
+
+      // find a segment that brackets the head value
+      for (let i=0; i<pts.length-1; i++) {
+        const a = pts[i], b = pts[i+1];
+        const ha = a.head_m, hb = b.head_m;
+        if ((head >= Math.min(ha,hb)) && (head <= Math.max(ha,hb)) && (ha !== hb)) {
+          const t = (head - ha) / (hb - ha);
+          return a.flow_m3_per_h + t * (b.flow_m3_per_h - a.flow_m3_per_h);
+        }
+      }
+
+      // Fallback: if not found due to noisy data, use head-sorted interpolation
+      const sorted = pts.slice().sort((a,b) => a.head_m - b.head_m);
+      return interp1(sorted, "head_m", "flow_m3_per_h", head);
+    }
+
+    function getEl(id) { return document.getElementById(id); }
+
+    // DOM refs
+    const elStatic = getEl("staticLift");
+    const elPress  = getEl("pressureHead");
+    const elFric   = getEl("frictionHead");
+
+    const elPvChoice = getEl("pvChoice");
+    const elPvOtherWrap = getEl("pvOtherWrap");
+    const elPvOtherWp = getEl("pvOtherWp");
+
+    const elVoc = getEl("stringVoc");
+    const elVmp = getEl("stringVmp");
+
+    const elPower = getEl("power");
+
+    const elTdhValue = getEl("tdhValue");
+    const elTdhBreak = getEl("tdhBreakdown");
+    const elTdhBadge = getEl("tdhBadge");
+    const elBadgeTdh = getEl("badgeTdh");
+
+    const elPvCurveLabel = getEl("pvCurveLabel");
+    const elPvCurveBadge = getEl("pvCurveBadge");
+
+    const elCurveRangeBadge = getEl("curveRangeBadge");
+
+    const elExpectedFlow = getEl("expectedFlow");
+    const elFlowContext = getEl("flowContext");
+    const elFeasibleBadge = getEl("feasibleBadge");
+    const elFeasAlert = getEl("feasibilityAlert");
+    const elFeasMsg = getEl("feasibilityMsg");
+
+    const elDailyCurveBadge = getEl("dailyCurveBadge");
+    const elLowVol = getEl("lowVol");
+    const elLowArea = getEl("lowArea");
+    const elAvgVol = getEl("avgVol");
+    const elAvgArea = getEl("avgArea");
+    const elHighVol = getEl("highVol");
+    const elHighArea = getEl("highArea");
+    const elNotePvCurve = getEl("notePvCurve");
+
+    const elChecksBadge = getEl("checksBadge");
+    const elThresholdLine = getEl("thresholdLine");
+    const elRequiredVmpLine = getEl("requiredVmpLine");
+    const elVoltageFindings = getEl("voltageFindings");
+    const elVmpTarget = getEl("vmpTarget");
+
+    const elInstallChecklist = getEl("installChecklist");
+
+    // Chart
+    const canvas = getEl("curveChart");
+    const ctx = canvas.getContext("2d");
+    const elChartFallback = getEl("chartFallback");
+
+    function updatePvOtherVisibility() {
+      const isOther = elPvChoice.value === "other";
+      elPvOtherWrap.style.display = isOther ? "block" : "none";
+    }
+
+    function pvCurveKeyAndLabel() {
+      const choice = elPvChoice.value;
+      if (choice === "1100") {
+        return { key: "pv_array_1100wp", label: "Datasheet PV curve: 1100 Wp" };
+      }
+      if (choice === "1330") {
+        return { key: "pv_array_1330wp", label: "Datasheet PV curve: 1330 Wp" };
+      }
+      const wp = num(elPvOtherWp.value);
+      const key = (!Number.isFinite(wp)) ? "pv_array_1330wp"
+        : (Math.abs(wp - 1100) <= Math.abs(wp - 1330) ? "pv_array_1100wp" : "pv_array_1330wp");
+      const chosen = key === "pv_array_1100wp" ? "1100 Wp" : "1330 Wp";
+      const label = "Nearest datasheet PV curve: " + chosen + (Number.isFinite(wp) ? (" (you entered " + wp + " Wp)") : "");
+      return { key, label };
+    }
+
+    function pumpCurveRaw(powerKey) {
+      return (SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.pump_curve_head_vs_flow_by_power[powerKey] || [])
+        .map(p => ({ head_m: Number(p.head_m), flow_m3_per_h: Number(p.flow_m3_per_h) }))
+        .filter(p => Number.isFinite(p.head_m) && Number.isFinite(p.flow_m3_per_h));
+    }
+
+    function curveHeadRange(points) {
+      if (!points.length) return { min: null, max: null, maxFlow: null };
+      const heads = points.map(p => p.head_m);
+      const flows = points.map(p => p.flow_m3_per_h);
+      return {
+        min: Math.min(...heads),
+        max: Math.max(...heads),
+        maxFlow: Math.max(...flows),
+      };
+    }
+
+    function clampNonNeg(x) {
+      return Number.isFinite(x) ? Math.max(0, x) : null;
+    }
+
+    function computeDailyAtTDH(pvKey, tdh) {
+      const daily = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.daily_output;
+      const pv = daily[pvKey];
+      if (!pv) return null;
+
+      const lowVol = clampNonNeg(interp1(pv.volume_m3_per_day.low, "head_m", "volume_m3_per_day", tdh));
+      const avgVol = clampNonNeg(interp1(pv.volume_m3_per_day.average, "head_m", "volume_m3_per_day", tdh));
+      const highVol = clampNonNeg(interp1(pv.volume_m3_per_day.high, "head_m", "volume_m3_per_day", tdh));
+
+      const lowArea = clampNonNeg(interp1(pv.area_acres_at_4mm_per_day.low, "head_m", "area_acres", tdh));
+      const avgArea = clampNonNeg(interp1(pv.area_acres_at_4mm_per_day.average, "head_m", "area_acres", tdh));
+      const highArea = clampNonNeg(interp1(pv.area_acres_at_4mm_per_day.high, "head_m", "area_acres", tdh));
+
+      const allHeads = []
+        .concat(pv.volume_m3_per_day.low, pv.volume_m3_per_day.average, pv.volume_m3_per_day.high)
+        .map(p => Number(p.head_m))
+        .filter(Number.isFinite);
+
+      const minHead = allHeads.length ? Math.min(...allHeads) : null;
+      const maxHead = allHeads.length ? Math.max(...allHeads) : null;
+
+      return {
+        low: { vol: lowVol, area: lowArea },
+        avg: { vol: avgVol, area: avgArea },
+        high: { vol: highVol, area: highArea },
+        headRange: { minHead, maxHead },
+      };
+    }
+
+    function computeRequiredMinVmp(powerKey, tdh) {
+      const curve = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.min_vmp_vs_head_by_power[powerKey] || [];
+      return interp1(curve, "head_m", "min_vmp_v", tdh);
+    }
+
+    function clearChildren(el) {
+      while (el.firstChild) el.removeChild(el.firstChild);
+    }
+
+    function renderVoltageFinding(tone, title, msg) {
+      const div = document.createElement("div");
+      div.className = "alert " + tone;
+
+      const t = document.createElement("div");
+      t.className = "alertTitle";
+      t.textContent = title;
+
+      const m = document.createElement("div");
+      m.className = "alertMsg";
+      m.textContent = msg;
+
+      div.appendChild(t);
+      div.appendChild(m);
+      return div;
+    }
+
+    
+    function drawChart(points, marker) {
+      if (!ctx) {
+        if (elChartFallback) {
+          elChartFallback.style.display = "flex";
+          elChartFallback.textContent = "Charts are blocked in this viewer. Save the HTML file and open it in Chrome/Safari (not inside an email preview).";
+        }
+        return;
+      }
+      if (elChartFallback) elChartFallback.style.display = "none";
+      // Responsive crisp rendering
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(300, Math.floor(rect.width));
+      const h = Math.max(220, Math.floor(rect.height));
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const pad = 28;
+      const range = curveHeadRange(points);
+
+      // Swap axes to conventional pump-curve layout:
+      // X axis = Flow (m³/h), Y axis = Head (m)
+      const xMin = 0;
+      const xMax = Number.isFinite(range.maxFlow) ? range.maxFlow : 1;
+      const yMin = Number.isFinite(range.min) ? range.min : 0;
+      const yMax = Number.isFinite(range.max) ? range.max : 1;
+
+      const sx = (x) => pad + ((x - xMin) / (xMax - xMin || 1)) * (w - 2*pad);
+      const sy = (y) => (h - pad) - ((y - yMin) / (yMax - yMin || 1)) * (h - 2*pad);
+
+      // subtle grid
+      ctx.strokeStyle = "rgba(0,0,0,0.06)";
+      ctx.lineWidth = 1;
+      const gridN = 4;
+      for (let i=1; i<=gridN; i++) {
+        const gx = pad + (i/gridN)*(w-2*pad);
+        ctx.beginPath(); ctx.moveTo(gx, pad); ctx.lineTo(gx, h-pad); ctx.stroke();
+        const gy = pad + (i/gridN)*(h-2*pad);
+        ctx.beginPath(); ctx.moveTo(pad, gy); ctx.lineTo(w-pad, gy); ctx.stroke();
+      }
+
+      // axes
+      ctx.strokeStyle = "rgba(0,0,0,0.18)";
+      ctx.lineWidth = 1.25;
+      ctx.beginPath(); ctx.moveTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke(); // x-axis
+      ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.stroke();     // y-axis
+
+      // curve (plot sorted by flow for a clean x-axis)
+      const plotPts = (points || []).slice().sort((a,b) => a.flow_m3_per_h - b.flow_m3_per_h);
+      if (plotPts.length) {
+        ctx.strokeStyle = (getComputedStyle(document.documentElement).getPropertyValue("--blue").trim() || "#006090");
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        plotPts.forEach((p, idx) => {
+          const x = sx(p.flow_m3_per_h);
+          const y = sy(p.head_m);
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+
+      // marker
+      if (marker && Number.isFinite(marker.head_m) && Number.isFinite(marker.flow_m3_per_h)) {
+        const mx = sx(marker.flow_m3_per_h);
+        const my = sy(marker.head_m);
+
+        // guide lines
+        ctx.strokeStyle = "rgba(0,96,144,0.25)";
+        ctx.setLineDash([5,5]);
+        ctx.lineWidth = 1.25;
+        ctx.beginPath(); ctx.moveTo(mx, pad); ctx.lineTo(mx, h-pad); ctx.stroke(); // vertical
+        ctx.beginPath(); ctx.moveTo(pad, my); ctx.lineTo(w-pad, my); ctx.stroke(); // horizontal
+        ctx.setLineDash([]);
+
+        // point
+        ctx.fillStyle = (getComputedStyle(document.documentElement).getPropertyValue("--green").trim() || "#70B020");
+        ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI*2); ctx.stroke();
+      }
+
+      // labels
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.font = "12px ui-sans-serif, system-ui";
+      ctx.textAlign = "right";
+      ctx.fillText("Flow (m³/h)", w - pad, h - 10);
+      ctx.textAlign = "left";
+      ctx.fillText("Head (m)", 10, 16);
+    }
+
+
+    function recompute() {
+      updatePvOtherVisibility();
+
+      // TDH
+      const s = num(elStatic.value) ?? 0;
+      const p = num(elPress.value) ?? 0;
+      const f = num(elFric.value) ?? 0;
+      const tdh = Math.max(0, s + p + f);
+
+      elTdhValue.textContent = fmt(tdh, 1);
+      elTdhBreak.textContent = "Static " + fmt(s,1) + " + Pressure " + fmt(p,1) + " + Friction " + fmt(f,1);
+      elTdhBadge.textContent = "TDH: " + fmt(tdh, 1) + " m";
+      elBadgeTdh.textContent = "TDH: " + fmt(tdh, 1) + " m";
+
+      // PV curve selection
+      const pvSel = pvCurveKeyAndLabel();
+      elPvCurveLabel.textContent = pvSel.label;
+      elPvCurveBadge.textContent = pvSel.key === "pv_array_1100wp" ? "PV curve: 1100 Wp" : "PV curve: 1330 Wp";
+      elNotePvCurve.textContent = pvSel.label + ".";
+
+      // Pump curve selection
+      const powerKey = elPower.value;
+      const rawCurve = pumpCurveRaw(powerKey);
+      const range = curveHeadRange(rawCurve);
+      if (Number.isFinite(range.min) && Number.isFinite(range.max)) {
+        elCurveRangeBadge.textContent = "Curve range: " + fmt(range.min,1) + "–" + fmt(range.max,1) + " m";
+      } else {
+        elCurveRangeBadge.textContent = "Curve range: —";
+      }
+
+      // Expected flow + feasibility (TDH must be <= max head for that curve)
+      let expectedFlow = null;
+      let feasible = false;
+      if (rawCurve.length && Number.isFinite(tdh) && Number.isFinite(range.max)) {
+        if (tdh <= range.max + 1e-9) {
+          expectedFlow = flowAtHeadFromPumpCurve(rawCurve, tdh);
+          feasible = Number.isFinite(expectedFlow);
+        }
+      }
+
+      if (feasible) {
+        elExpectedFlow.textContent = fmt(expectedFlow, 2);
+        elFlowContext.textContent = "TDH " + fmt(tdh,1) + " m on " + powerKey;
+        elFeasibleBadge.textContent = "Estimated";
+        elFeasibleBadge.className = "badge green";
+        elFeasAlert.style.display = "none";
+      } else {
+        elExpectedFlow.textContent = "—";
+        elFlowContext.textContent = "TDH " + fmt(tdh,1) + " m on " + powerKey;
+        elFeasibleBadge.textContent = "Not feasible";
+        elFeasibleBadge.className = "badge red";
+        if (Number.isFinite(range.max)) {
+          elFeasMsg.textContent = "TDH " + fmt(tdh,1) + " m exceeds max head for " + powerKey + " (≈" + fmt(range.max,1) + " m). Try a higher power curve and/or reduce head losses.";
+        } else {
+          elFeasMsg.textContent = "TDH exceeds the max head for this power selection.";
+        }
+        elFeasAlert.style.display = "block";
+      }
+
+      drawChart(rawCurve, feasible ? { head_m: tdh, flow_m3_per_h: expectedFlow } : null);
+
+      // Daily output KPIs
+      const dailyAt = computeDailyAtTDH(pvSel.key, tdh);
+      if (dailyAt) {
+        elDailyCurveBadge.textContent = pvSel.key === "pv_array_1100wp" ? "Using 1100 Wp curve" : "Using 1330 Wp curve";
+
+        elLowVol.textContent = fmt(dailyAt.low.vol, 2) + " m³/day";
+        elAvgVol.textContent = fmt(dailyAt.avg.vol, 2) + " m³/day";
+        elHighVol.textContent = fmt(dailyAt.high.vol, 2) + " m³/day";
+
+        elLowArea.textContent = fmt(dailyAt.low.area, 3) + " acres @ 4 mm/day";
+        elAvgArea.textContent = fmt(dailyAt.avg.area, 3) + " acres @ 4 mm/day";
+        elHighArea.textContent = fmt(dailyAt.high.area, 3) + " acres @ 4 mm/day";
+
+        // Add/refresh head-range note line
+        const notes = document.getElementById("dailyNotes");
+        const existing = document.getElementById("pvHeadRangeNote");
+        if (existing) existing.remove();
+
+        if (Number.isFinite(dailyAt.headRange.minHead) && Number.isFinite(dailyAt.headRange.maxHead)) {
+          const li = document.createElement("li");
+          li.id = "pvHeadRangeNote";
+          let extra = "";
+          if (tdh > dailyAt.headRange.maxHead + 1e-9) {
+            extra = " Your TDH is above this range, so the nearest (max-head) point is used.";
+          }
+          li.textContent = "PV curve head range (approx): " + fmt(dailyAt.headRange.minHead,1) + "–" + fmt(dailyAt.headRange.maxHead,1) + " m." + extra;
+          notes.appendChild(li);
+        }
+      } else {
+        elDailyCurveBadge.textContent = "—";
+        elLowVol.textContent = "—"; elAvgVol.textContent = "—"; elHighVol.textContent = "—";
+        elLowArea.textContent = "—"; elAvgArea.textContent = "—"; elHighArea.textContent = "—";
+      }
+
+      // PV voltage checks
+      const checks = SOLARPLEX_DATA.installer_checks_from_user_guide;
+      const maxVoc = checks.max_total_voc_v_series;
+      const vmpTarget = checks.full_power_vmp_target_v;
+      elVmpTarget.textContent = String(vmpTarget);
+
+      const voc = num(elVoc.value);
+      const vmp = num(elVmp.value);
+
+      const checksActive = Number.isFinite(voc) || Number.isFinite(vmp);
+      elChecksBadge.textContent = checksActive ? "Checks active" : "Checks skipped";
+      elChecksBadge.className = "badge" + (checksActive ? " blue" : "");
+
+      elThresholdLine.textContent = "Max Voc (series) = " + maxVoc + " V • Full-power Vmp target (800 W) = " + vmpTarget + " V";
+
+      const reqMinVmp = computeRequiredMinVmp(powerKey, tdh);
+      elRequiredVmpLine.textContent = Number.isFinite(reqMinVmp)
+        ? ("Min required Vmp @ TDH " + fmt(tdh,1) + " m & " + powerKey + " ≈ " + fmt(reqMinVmp,1) + " V")
+        : "Min required Vmp curve unavailable for this selection.";
+
+      clearChildren(elVoltageFindings);
+
+      if (checksActive) {
+        if (Number.isFinite(voc)) {
+          if (voc >= maxVoc) {
+            elVoltageFindings.appendChild(renderVoltageFinding(
+              "bad",
+              "PV Voc too high",
+              "String Voc = " + fmt(voc,1) + " V ≥ " + maxVoc + " V. Over-voltage risk / shutdown."
+            ));
+          } else {
+            elVoltageFindings.appendChild(renderVoltageFinding(
+              "ok",
+              "PV Voc OK",
+              "String Voc = " + fmt(voc,1) + " V (limit " + maxVoc + " V)."
+            ));
+          }
+        }
+
+        if (Number.isFinite(vmp)) {
+          if (Number.isFinite(reqMinVmp) && vmp < reqMinVmp - 1e-9) {
+            elVoltageFindings.appendChild(renderVoltageFinding(
+              "warn",
+              "Vmp may be insufficient for this head/power",
+              "String Vmp = " + fmt(vmp,1) + " V, but minimum required ≈ " + fmt(reqMinVmp,1) + " V at TDH " + fmt(tdh,1) + " m and " + powerKey + ". May not start / reduced performance."
+            ));
+          } else if (Number.isFinite(reqMinVmp)) {
+            elVoltageFindings.appendChild(renderVoltageFinding(
+              "ok",
+              "Vmp meets minimum requirement",
+              "String Vmp = " + fmt(vmp,1) + " V, minimum required ≈ " + fmt(reqMinVmp,1) + " V at TDH " + fmt(tdh,1) + " m and " + powerKey + "."
+            ));
+          }
+
+          if (powerKey === "800We") {
+            if (vmp < vmpTarget) {
+              elVoltageFindings.appendChild(renderVoltageFinding(
+                "info",
+                "Full-power note (800 W)",
+                "For full 800 W, aim for Vmp (STC) > " + vmpTarget + " V. Your Vmp is " + fmt(vmp,1) + " V."
+              ));
+            } else {
+              elVoltageFindings.appendChild(renderVoltageFinding(
+                "ok",
+                "Full-power target met (800 W)",
+                "Vmp = " + fmt(vmp,1) + " V ≥ " + vmpTarget + " V target for full 800 W."
+              ));
+            }
+          }
+        }
+      } else {
+        elVoltageFindings.appendChild(renderVoltageFinding(
+          "info",
+          "Checks skipped",
+          "Enter Voc and/or Vmp to see voltage checks. If you leave them blank, the app will skip checks."
+        ));
+      }
+    }
+
+    function initChecklist() {
+      const list = SOLARPLEX_DATA.installer_checks_from_user_guide.checklist || [];
+      while (elInstallChecklist.firstChild) elInstallChecklist.removeChild(elInstallChecklist.firstChild);
+      list.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        elInstallChecklist.appendChild(li);
+      });
+    }
+
+    // Wire up events
+    [elStatic, elPress, elFric, elPvChoice, elPvOtherWp, elVoc, elVmp, elPower].forEach(el => {
+      el.addEventListener("input", recompute);
+      el.addEventListener("change", recompute);
+    });
+
+    window.addEventListener("resize", () => recompute());
+
+    initChecklist();
+    updatePvOtherVisibility();
+    recompute();
+  </script>
+</body>
+</html>
