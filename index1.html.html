@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Impact Pumps — SolarPlex Petrol Savings Estimator</title>
+  <style>
+    :root {
+      --ip-blue: #006A92;
+      --ip-blue-2: #085877;
+      --ip-green: #77B82A;
+      --bg: #F6F8FA;
+      --card: #FFFFFF;
+      --text: #0B1320;
+      --muted: #51606D;
+      --border: #D9E1E7;
+      --warn: #B45309;
+      --bad: #B91C1C;
+      --good: #15803D;
+      --shadow: 0 6px 22px rgba(11,19,32,.08);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 65%);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,.82);
+      border-bottom: 1px solid var(--border);
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--ip-blue) 0%, var(--ip-green) 100%);
+      box-shadow: 0 10px 20px rgba(0,106,146,.18);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .5px;
+      user-select: none;
+    }
+    h1 {
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    main .wrap {
+      padding-top: 18px;
+      padding-bottom: 30px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-h {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-h h2 { font-size: 14px; margin: 0; }
+    .card-b { padding: 14px 16px 16px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: rgba(0,106,146,.55);
+      box-shadow: 0 0 0 3px rgba(0,106,146,.12);
+    }
+    .money-wrap { position: relative; }
+    .money-wrap .prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 800;
+      pointer-events: none;
+    }
+    .money-wrap input { padding-left: 22px; }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+    .hint small { font-size: 11px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    /* Results layout */
+    .hero {
+      border: 1px solid rgba(119,184,42,.28);
+      background: linear-gradient(135deg, rgba(119,184,42,.16) 0%, rgba(0,106,146,.10) 100%);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      margin-bottom: 12px;
+    }
+    .hero .t { font-size: 12px; color: var(--ip-blue-2); font-weight: 800; text-transform: uppercase; letter-spacing: .8px;}
+    .hero .v { font-size: 38px; font-weight: 900; margin-top: 4px; letter-spacing: -1px; color: var(--text); }
+    .hero .s { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+    .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
+    .kpi {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .kpi .t { font-size: 12px; color: var(--muted); }
+    .kpi .v { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -.2px; }
+    .kpi .s { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .hr { height: 1px; background: var(--border); margin: 14px 0; }
+    .callout {
+      border-left: 4px solid var(--ip-blue);
+      background: rgba(0,106,146,.06);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .callout strong { color: var(--text); }
+    .warnbox { border-left-color: var(--warn); background: rgba(180,83,9,.07); }
+    .badbox { border-left-color: var(--bad); background: rgba(185,28,28,.07); }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+    summary { cursor: pointer; font-weight: 700; font-size: 13px; }
+    .mini { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .chart {
+      width: 100%;
+      height: 320px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fff 0%, #fbfcfd 100%);
+    }
+    .footer { margin-top: 14px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(0,106,146,.35);
+      background: rgba(0,106,146,.06);
+      color: var(--ip-blue-2);
+      padding: 9px 11px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .btn:hover { background: rgba(0,106,146,.10); }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">IP</div>
+      <div>
+        <h1>SolarPlex Petrol Savings Estimator</h1>
+        <div class="subtitle">Simple sizing + annual fuel savings (datasheet-based curves)</div>
+      </div>
+      <div style="margin-left:auto">
+        <span class="pill">SPX-800-5</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+      <section class="card">
+        <div class="card-h">
+          <h2>Inputs</h2>
+          <button class="btn" id="resetBtn" type="button">Reset defaults</button>
+        </div>
+        <div class="card-b">
+          <div class="row">
+            <div>
+              <label>Total Dynamic Head (m)</label>
+              <input type="number" step="0.1" id="tdh" />
+              <div class="hint">All-in head: lift + pipe losses + outlet pressure head.</div>
+            </div>
+            <div>
+              <label>PV preset</label>
+              <select id="pvPreset">
+                <option value="1330">1330 Wp (2 × 665 Wp)</option>
+                <option value="1100">1100 Wp (2 × 550 Wp)</option>
+              </select>
+              <div class="hint">Daily output uses datasheet “Average” and “High” day curves.</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <div>
+              <label>Land area (acres)</label>
+              <input type="number" step="0.01" id="areaAcres" />
+            </div>
+            <div>
+              <label>Irrigation depth (mm/day)</label>
+              <input type="number" step="0.1" id="depthMm" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Irrigation days per year</label>
+              <input type="number" step="1" id="daysPerYear" />
+            </div>
+            <div>
+              <label>Petrol used per irrigation day (litres)</label>
+              <input type="number" step="0.1" id="petrolLitresPerDay" />
+              <div class="hint">
+                Fuel burned on an irrigation day (run time × L/hr).
+</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Petrol price</label>
+              <div class="money-wrap">
+                <span class="prefix">$</span>
+                <input type="text" inputmode="decimal" id="petrolPrice" />
+              </div>
+</div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>How this works:</strong> We compute your water requirement from area × depth, then compare it to
+            SolarPlex datasheet daily output at your head (Average/High day). Petrol savings are your annual fuel spend avoided.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Results</h2>
+          <span class="pill" id="statusPill">Ready</span>
+        </div>
+        <div class="card-b">
+
+          <div class="hero">
+            <div class="t">Estimated annual fuel savings</div>
+            <div class="v" id="kpiSavings">$0</div>
+            <div class="s" id="kpiSavingsSub">—</div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="t">Water required</div>
+              <div class="v" id="kpiDemand">0 m³/day</div>
+              <div class="s" id="kpiDemandSub">—</div>
+            </div>
+            <div class="kpi">
+              <div class="t">Petrol baseline</div>
+              <div class="v" id="kpiPetrolYear">$0/yr</div>
+              <div class="s" id="kpiPetrolYearSub">—</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="kpis" style="grid-template-columns:1fr;">
+            <div class="kpi">
+              <div class="t">SolarPlex output at your head (datasheet curves)</div>
+              <div class="s" id="solarSummary">—</div>
+              <div class="hr" style="margin:10px 0;"></div>
+              <div class="row" style="margin:0;">
+                <div class="kpi" style="padding:10px; box-shadow:none;">
+                  <div class="t">Average day</div>
+                  <div class="v" id="avgM3">—</div>
+                  <div class="s" id="avgNote">—</div>
+                </div>
+                <div class="kpi" style="padding:10px; box-shadow:none;">
+                  <div class="t">High day</div>
+                  <div class="v" id="highM3">—</div>
+                  <div class="s" id="highNote">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="t">Peak flow at head (pump curve)</div>
+              <div class="v" id="peakFlow">—</div>
+              <div class="s">From 800We curve (full sun / max power).</div>
+            </div>
+            <div class="kpi">
+              <div class="t">Mid-power flow at head</div>
+              <div class="v" id="midFlow">—</div>
+              <div class="s">From 600We curve (indicative lower-sun operation).</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+<div id="warnings"></div>
+
+          <div class="footer">
+            Based on digitised SPX-800-5 datasheet charts. Field results vary with irradiance, temperature, shading, installation quality, and water source behaviour.
+          </div>
+        </div>
+      </section>
+    <section class="card" style="margin-top:16px;">
+      <div class="card-h">
+        <h2>Technical charts</h2>
+        <span class="pill">Datasheet curves</span>
+      </div>
+      <div class="card-b">
+        <details open>
+            <summary>Charts</summary>
+            <div class="hint">Charts plot the embedded datasheet curves and your operating point.</div>
+
+            <svg class="chart" id="pumpChart" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="mini">Pump curve: Head vs Flow (800We) with your TDH marker.</div>
+
+            <svg class="chart" id="dailyChart" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="mini">Daily output: m³/day vs Head for Average and High day (selected PV preset).</div>
+          </details>
+        <div class="footer" style="margin-top:12px;">
+          Tip: Use these charts to sanity-check operating point vs head/flow and daily volume vs head.
+        </div>
+      </div>
+    </section>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  const SOLARPLEX_DATA = {"product":{"brand":"Impact Pumps","model":"SolarPlex SPX-800-5","datasheet":"SolarPlex_SPX-800-5_Datasheet_v3-2.pdf","user_guide":"SOLARPLEX-SPX-800-5-Userguide-v2-4-100824.pdf","brand_colors":{"primary_blue":"#006090","primary_green":"#70B020","neutral_dark":"#0B1320","neutral_light":"#F6F8FA"}},"specs_from_datasheet":{"rated_power_w":800,"operating_voltage_range_v":[30,100],"max_flow_m3_per_h":5.4,"max_head_m":75,"inlet_outlet_thread_inch":1,"protection_rating":"IP56","warranty_years":2,"notes":["Fresh water, 0\u201335\u00b0C. pH 6.5\u20138.5. Sand \u2264 1 g/L. Salinity \u2264 7 g/L.","Control inputs: ON/OFF or PWM; dry-run switch input; tank overflow switch input; RS-485."]},"curves_digitised_from_datasheet_charts":{"pump_curve_head_vs_flow_by_power":{"800We":[{"flow_m3_per_h":0.0,"head_m":74.86},{"flow_m3_per_h":0.5,"head_m":68.38},{"flow_m3_per_h":1.0,"head_m":61.91},{"flow_m3_per_h":1.5,"head_m":55.43},{"flow_m3_per_h":2.0,"head_m":48.95},{"flow_m3_per_h":2.5,"head_m":42.47},{"flow_m3_per_h":3.0,"head_m":35.99},{"flow_m3_per_h":3.5,"head_m":29.51},{"flow_m3_per_h":4.0,"head_m":23.03},{"flow_m3_per_h":4.5,"head_m":16.55},{"flow_m3_per_h":5.0,"head_m":10.07},{"flow_m3_per_h":5.41,"head_m":4.76}],"600We":[{"flow_m3_per_h":0.0,"head_m":60.8},{"flow_m3_per_h":0.5,"head_m":54.99},{"flow_m3_per_h":1.0,"head_m":49.19},{"flow_m3_per_h":1.5,"head_m":43.38},{"flow_m3_per_h":2.0,"head_m":37.58},{"flow_m3_per_h":2.5,"head_m":31.77},{"flow_m3_per_h":3.0,"head_m":25.97},{"flow_m3_per_h":3.5,"head_m":20.16},{"flow_m3_per_h":4.0,"head_m":14.36},{"flow_m3_per_h":4.5,"head_m":8.55},{"flow_m3_per_h":5.0,"head_m":2.75},{"flow_m3_per_h":5.25,"head_m":0.0}],"400We":[{"flow_m3_per_h":0.0,"head_m":43.45},{"flow_m3_per_h":0.5,"head_m":38.52},{"flow_m3_per_h":1.0,"head_m":33.6},{"flow_m3_per_h":1.5,"head_m":28.67},{"flow_m3_per_h":2.0,"head_m":23.74},{"flow_m3_per_h":2.5,"head_m":18.81},{"flow_m3_per_h":3.0,"head_m":13.88},{"flow_m3_per_h":3.5,"head_m":8.95},{"flow_m3_per_h":4.0,"head_m":4.02},{"flow_m3_per_h":4.43,"head_m":0.0}],"200We":[{"flow_m3_per_h":0.0,"head_m":28.33},{"flow_m3_per_h":0.5,"head_m":24.24},{"flow_m3_per_h":1.0,"head_m":20.16},{"flow_m3_per_h":1.5,"head_m":16.07},{"flow_m3_per_h":2.0,"head_m":11.98},{"flow_m3_per_h":2.5,"head_m":7.89},{"flow_m3_per_h":3.0,"head_m":3.81},{"flow_m3_per_h":3.49,"head_m":0.0}],"100We":[{"flow_m3_per_h":0.0,"head_m":13.63},{"flow_m3_per_h":0.5,"head_m":10.76},{"flow_m3_per_h":1.0,"head_m":7.88},{"flow_m3_per_h":1.5,"head_m":5.01},{"flow_m3_per_h":2.0,"head_m":2.13},{"flow_m3_per_h":2.4,"head_m":0.0}]},"min_vmp_vs_head_by_power":{"800We":[{"head_m":0.0,"min_vmp_v":65.88},{"head_m":5.0,"min_vmp_v":66.14},{"head_m":10.0,"min_vmp_v":66.28},{"head_m":15.0,"min_vmp_v":66.47},{"head_m":20.0,"min_vmp_v":66.7},{"head_m":25.0,"min_vmp_v":66.85},{"head_m":30.0,"min_vmp_v":67.01},{"head_m":35.0,"min_vmp_v":67.25},{"head_m":40.0,"min_vmp_v":67.43},{"head_m":45.0,"min_vmp_v":67.57},{"head_m":50.0,"min_vmp_v":67.81},{"head_m":55.0,"min_vmp_v":68.28},{"head_m":60.0,"min_vmp_v":68.98},{"head_m":65.0,"min_vmp_v":69.85},{"head_m":66.49,"min_vmp_v":70}],"600We":[{"head_m":0.0,"min_vmp_v":60.82},{"head_m":5.0,"min_vmp_v":61.01},{"head_m":10.0,"min_vmp_v":61.25},{"head_m":15.0,"min_vmp_v":61.49},{"head_m":20.0,"min_vmp_v":61.75},{"head_m":25.0,"min_vmp_v":62.0},{"head_m":30.0,"min_vmp_v":62.23},{"head_m":35.0,"min_vmp_v":62.46},{"head_m":40.0,"min_vmp_v":62.75},{"head_m":45.0,"min_vmp_v":63.46},{"head_m":50.0,"min_vmp_v":64.43},{"head_m":55.0,"min_vmp_v":65.69},{"head_m":60.0,"min_vmp_v":67.22},{"head_m":61.45,"min_vmp_v":67.67}],"400We":[{"head_m":0.0,"min_vmp_v":51.02},{"head_m":5.0,"min_vmp_v":51.02},{"head_m":10.0,"min_vmp_v":51.26},{"head_m":15.0,"min_vmp_v":51.69},{"head_m":20.0,"min_vmp_v":52.43},{"head_m":25.0,"min_vmp_v":53.45},{"head_m":30.0,"min_vmp_v":54.61},{"head_m":35.0,"min_vmp_v":55.91},{"head_m":40.0,"min_vmp_v":57.27},{"head_m":43.54,"min_vmp_v":58.24}],"200We":[{"head_m":0.0,"min_vmp_v":41.01},{"head_m":5.0,"min_vmp_v":41.25},{"head_m":10.0,"min_vmp_v":41.69},{"head_m":15.0,"min_vmp_v":42.52},{"head_m":20.0,"min_vmp_v":44.11},{"head_m":25.0,"min_vmp_v":46.49},{"head_m":29.71,"min_vmp_v":49.17}],"100We":[{"head_m":0.0,"min_vmp_v":31.55},{"head_m":5.0,"min_vmp_v":32.19},{"head_m":10.0,"min_vmp_v":33.58},{"head_m":14.48,"min_vmp_v":36.01}]},"daily_output":{"units":{"head_m":"m","volume_m3_per_day":"m3/day","area_acres":"acres"},"assumptions":["Curves digitised from datasheet plots; use interpolation inside the provided ranges, clamp outside (no extrapolation).","Daily output curves provided for 1330 Wp and 1100 Wp PV arrays under low/average/high irradiance day profiles as shown in the datasheet."],"pv_array_1330wp":{"volume_m3_per_day":{"low":[{"head_m":48.0,"volume_m3_per_day":0.36},{"head_m":40.0,"volume_m3_per_day":3.82},{"head_m":30.0,"volume_m3_per_day":8.55},{"head_m":20.0,"volume_m3_per_day":14.45},{"head_m":15.0,"volume_m3_per_day":18.09},{"head_m":10.0,"volume_m3_per_day":22.73},{"head_m":7.5,"volume_m3_per_day":25.91},{"head_m":5.0,"volume_m3_per_day":29.45}],"average":[{"head_m":60.0,"volume_m3_per_day":1.09},{"head_m":50.0,"volume_m3_per_day":6.73},{"head_m":40.0,"volume_m3_per_day":13.27},{"head_m":30.0,"volume_m3_per_day":20.36},{"head_m":20.0,"volume_m3_per_day":28.73},{"head_m":15.0,"volume_m3_per_day":33.45},{"head_m":10.0,"volume_m3_per_day":38.91},{"head_m":7.5,"volume_m3_per_day":41.82},{"head_m":5.0,"volume_m3_per_day":45.27}],"high":[{"head_m":60.0,"volume_m3_per_day":6.0},{"head_m":50.0,"volume_m3_per_day":13.27},{"head_m":40.0,"volume_m3_per_day":21.27},{"head_m":30.0,"volume_m3_per_day":30.18},{"head_m":20.0,"volume_m3_per_day":40.0},{"head_m":15.0,"volume_m3_per_day":45.27},{"head_m":10.0,"volume_m3_per_day":51.09},{"head_m":7.5,"volume_m3_per_day":54.18},{"head_m":5.0,"volume_m3_per_day":57.27}]},"area_acres_at_4mm_per_day":{"low":[{"head_m":48.0,"area_acres":0.02},{"head_m":40.0,"area_acres":0.229},{"head_m":30.0,"area_acres":0.524},{"head_m":20.0,"area_acres":0.885},{"head_m":15.0,"area_acres":1.109},{"head_m":10.0,"area_acres":1.394},{"head_m":7.5,"area_acres":1.587},{"head_m":5.0,"area_acres":1.811}],"average":[{"head_m":60.0,"area_acres":0.061},{"head_m":50.0,"area_acres":0.407},{"head_m":40.0,"area_acres":0.804},{"head_m":30.0,"area_acres":1.251},{"head_m":20.0,"area_acres":1.76},{"head_m":15.0,"area_acres":2.055},{"head_m":10.0,"area_acres":2.381},{"head_m":7.5,"area_acres":2.564},{"head_m":5.0,"area_acres":2.773}],"high":[{"head_m":60.0,"area_acres":0.366},{"head_m":50.0,"area_acres":0.814},{"head_m":40.0,"area_acres":1.307},{"head_m":30.0,"area_acres":1.852},{"head_m":20.0,"area_acres":2.452},{"head_m":15.0,"area_acres":2.778},{"head_m":10.0,"area_acres":3.134},{"head_m":7.5,"area_acres":3.317},{"head_m":5.0,"area_acres":3.469}]}},"pv_array_1100wp":{"volume_m3_per_day":{"low":[{"head_m":39.0,"volume_m3_per_day":0.88},{"head_m":30.0,"volume_m3_per_day":4.96},{"head_m":20.0,"volume_m3_per_day":10.62},{"head_m":15.0,"volume_m3_per_day":14.25},{"head_m":10.0,"volume_m3_per_day":18.94},{"head_m":7.5,"volume_m3_per_day":22.12},{"head_m":5.0,"volume_m3_per_day":26.11}],"average":[{"head_m":60.0,"volume_m3_per_day":-0.44},{"head_m":50.0,"volume_m3_per_day":4.07},{"head_m":40.0,"volume_m3_per_day":9.2},{"head_m":30.0,"volume_m3_per_day":15.04},{"head_m":20.0,"volume_m3_per_day":22.3},{"head_m":15.0,"volume_m3_per_day":26.81},{"head_m":10.0,"volume_m3_per_day":32.74},{"head_m":7.5,"volume_m3_per_day":36.73},{"head_m":5.0,"volume_m3_per_day":41.33}],"high":[{"head_m":60.0,"volume_m3_per_day":5.49},{"head_m":50.0,"volume_m3_per_day":11.5},{"head_m":40.0,"volume_m3_per_day":18.5},{"head_m":30.0,"volume_m3_per_day":26.37},{"head_m":20.0,"volume_m3_per_day":35.4},{"head_m":15.0,"volume_m3_per_day":40.71},{"head_m":10.0,"volume_m3_per_day":46.9},{"head_m":7.5,"volume_m3_per_day":50.27},{"head_m":5.0,"volume_m3_per_day":53.63}]},"area_acres_at_4mm_per_day":{"low":[{"head_m":39.0,"area_acres":0.05},{"head_m":30.0,"area_acres":0.3},{"head_m":20.0,"area_acres":0.655},{"head_m":15.0,"area_acres":0.88},{"head_m":10.0,"area_acres":1.17},{"head_m":7.5,"area_acres":1.36},{"head_m":5.0,"area_acres":1.61}],"average":[{"head_m":60.0,"area_acres":-0.032},{"head_m":50.0,"area_acres":0.25},{"head_m":40.0,"area_acres":0.565},{"head_m":30.0,"area_acres":0.93},{"head_m":20.0,"area_acres":1.38},{"head_m":15.0,"area_acres":1.66},{"head_m":10.0,"area_acres":2.02},{"head_m":7.5,"area_acres":2.275},{"head_m":5.0,"area_acres":2.55}],"high":[{"head_m":60.0,"area_acres":0.33},{"head_m":50.0,"area_acres":0.71},{"head_m":40.0,"area_acres":1.14},{"head_m":30.0,"area_acres":1.625},{"head_m":20.0,"area_acres":2.19},{"head_m":15.0,"area_acres":2.515},{"head_m":10.0,"area_acres":2.895},{"head_m":7.5,"area_acres":3.11},{"head_m":5.0,"area_acres":3.32}]}}}},"installer_checks_from_user_guide":{"max_total_voc_v_series":105,"full_power_vmp_target_v":74,"checklist":["Prime pump and inlet pipe completely with water before running.","Isolate all electrical power before priming or servicing.","Keep connectors clean and dry; confirm polarity (red = +).","For full 800 W, design PV so combined Vmp (STC) is > 74 V (often 2 panels in series).","Ensure total Voc (series) stays below 105 V to avoid over-voltage shutdown."]},"generated_utc":"2026-02-08T22:26:43Z","quality_note":"Digitisation is approximate (from raster charts). If you want higher accuracy, provide the original vector chart data or allow a WebPlotDigitizer export."};
+
+  // Helpers
+  const fmt = (n, dp=2) => (Number.isFinite(n) ? n.toFixed(dp) : "—");
+  const money0 = (n) => Number.isFinite(n)
+    ? n.toLocaleString(undefined, { style:"currency", currency:"USD", maximumFractionDigits:0 })
+    : "—";
+  const money2 = (n) => Number.isFinite(n)
+    ? n.toLocaleString(undefined, { style:"currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2 })
+    : "—";
+
+  function parseMoneyInput(s) {
+    if (s === null || s === undefined) return NaN;
+    const cleaned = String(s).replace(/[^0-9.\-]/g,"");
+    const v = parseFloat(cleaned);
+    return v;
+  }
+
+  function formatMoneyInput(v) {
+    if (!Number.isFinite(v)) return "";
+    return v.toFixed(2);
+  }
+
+  function interpByX(points, xKey, yKey, x) {
+    const pts = [...points].sort((a,b)=>a[xKey]-b[xKey]);
+    if (x < pts[0][xKey] || x > pts[pts.length-1][xKey]) return null;
+    for (let i=0; i<pts.length-1; i++) {
+      const x0 = pts[i][xKey], x1 = pts[i+1][xKey];
+      if (x === x0) return pts[i][yKey];
+      if (x > x0 && x < x1) {
+        const y0 = pts[i][yKey], y1 = pts[i+1][yKey];
+        const t = (x - x0) / (x1 - x0);
+        return y0 + t*(y1-y0);
+      }
+    }
+    return pts[pts.length-1][yKey];
+  }
+
+  function flowAtHead(powerKey, head) {
+    const curve = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.pump_curve_head_vs_flow_by_power[powerKey];
+    const pts = [...curve].sort((a,b)=>a.head_m - b.head_m);
+    return interpByX(pts, "head_m", "flow_m3_per_h", head);
+  }
+
+  function dailyAtHead(pvPreset, dayType, head) {
+    const daily = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.daily_output;
+    const key = pvPreset === "1100" ? "pv_array_1100wp" : "pv_array_1330wp";
+    const volPts = daily[key].volume_m3_per_day[dayType];
+    const areaPts = daily[key].area_acres_at_4mm_per_day[dayType];
+    const vol = interpByX(volPts, "head_m", "volume_m3_per_day", head);
+    const area = interpByX(areaPts, "head_m", "area_acres", head);
+    return { vol, area, key };
+  }
+
+  function waterDemandM3PerDay(areaAcres, depthMm) {
+    return areaAcres * 4046.8564224 * (depthMm / 1000.0);
+  }
+
+  // Simple SVG charting
+  // Simple SVG charting
+  function drawChart(svgEl, opts) {
+    const svg = svgEl;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    const W = 600, H = 260, padL=46, padR=14, padT=16, padB=32;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    const xMin = opts.xMin, xMax = opts.xMax, yMin = opts.yMin, yMax = opts.yMax;
+    const xToPx = x => padL + ((x - xMin) / (xMax - xMin)) * plotW;
+    const yToPx = y => padT + (1 - ((y - yMin) / (yMax - yMin))) * plotH;
+
+    // Grid (4x4)
+    for (let i=0;i<=4;i++) {
+      const y = padT + (plotH*i/4);
+      const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1", padL); line.setAttribute("x2", W-padR);
+      line.setAttribute("y1", y); line.setAttribute("y2", y);
+      line.setAttribute("stroke", "#E6EDF3");
+      svg.appendChild(line);
+    }
+    for (let i=0;i<=4;i++) {
+      const x = padL + (plotW*i/4);
+      const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("y1", padT); line.setAttribute("y2", H-padB);
+      line.setAttribute("x1", x); line.setAttribute("x2", x);
+      line.setAttribute("stroke", "#E6EDF3");
+      svg.appendChild(line);
+    }
+
+    // Axes
+    const ax = document.createElementNS("http://www.w3.org/2000/svg","path");
+    ax.setAttribute("d", `M ${padL} ${padT} V ${H-padB} H ${W-padR}`);
+    ax.setAttribute("stroke", "#9FB0BE");
+    ax.setAttribute("fill", "none");
+    ax.setAttribute("stroke-width", "1.2");
+    svg.appendChild(ax);
+
+    const makeText = (x,y,txt,anchor="start") => {
+      const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x", x); t.setAttribute("y", y);
+      t.setAttribute("fill", "#51606D");
+      t.setAttribute("font-size", "11");
+      t.setAttribute("font-family", "ui-sans-serif,system-ui");
+      t.setAttribute("text-anchor", anchor);
+      t.textContent = txt;
+      return t;
+    };
+
+    // Titles / labels
+    svg.appendChild(makeText(padL, 12, opts.title));
+    svg.appendChild(makeText(padL, H-10, opts.xLabel));
+    svg.appendChild(makeText(6, padT+10, opts.yLabel));
+
+    // Tick labels (basic)
+    const tickGroup = document.createElementNS("http://www.w3.org/2000/svg","g");
+    tickGroup.setAttribute("opacity","1");
+    svg.appendChild(tickGroup);
+
+    const addTick = (x1,y1,x2,y2) => {
+      const l = document.createElementNS("http://www.w3.org/2000/svg","line");
+      l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+      l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+      l.setAttribute("stroke", "#9FB0BE");
+      l.setAttribute("stroke-width","1");
+      tickGroup.appendChild(l);
+    };
+
+    const xStep = opts.tickStepX;
+    if (Number.isFinite(xStep) && xStep > 0) {
+      const start = Math.ceil(xMin / xStep) * xStep;
+      for (let v=start; v<=xMax+1e-9; v+=xStep) {
+        const px = xToPx(v);
+        addTick(px, H-padB, px, H-padB+4);
+        const txt = makeText(px, H-padB+16, (opts.tickFormatX ? opts.tickFormatX(v) : String(v)), "middle");
+        tickGroup.appendChild(txt);
+      }
+    }
+
+    const yStep = opts.tickStepY;
+    if (Number.isFinite(yStep) && yStep > 0) {
+      const start = Math.ceil(yMin / yStep) * yStep;
+      for (let v=start; v<=yMax+1e-9; v+=yStep) {
+        const py = yToPx(v);
+        addTick(padL-4, py, padL, py);
+        const txt = makeText(padL-8, py+4, (opts.tickFormatY ? opts.tickFormatY(v) : String(v)), "end");
+        tickGroup.appendChild(txt);
+      }
+    }
+
+    // Series lines
+    for (const s of opts.series) {
+      const pts = s.points;
+      if (!pts || pts.length < 2) continue;
+      let d = "";
+      pts.forEach((p, i)=> {
+        const x = xToPx(p.x), y = yToPx(p.y);
+        d += (i===0 ? "M":"L") + ` ${x} ${y} `;
+      });
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("d", d.trim());
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke", s.color);
+      path.setAttribute("stroke-width", s.width || 2.4);
+      svg.appendChild(path);
+
+      if (s.name) {
+        const last = pts[pts.length-1];
+        svg.appendChild(makeText(xToPx(last.x)-4, yToPx(last.y)-6, s.name, "end"));
+      }
+    }
+
+    // Marker
+    if (opts.marker) {
+      const cx = xToPx(opts.marker.x);
+      const cy = yToPx(opts.marker.y);
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx", cx); c.setAttribute("cy", cy);
+      c.setAttribute("r", 5.5);
+      c.setAttribute("fill", "#77B82A");
+      c.setAttribute("stroke", "#085877");
+      c.setAttribute("stroke-width", "2");
+      svg.appendChild(c);
+    }
+  }
+
+  const defaults = {
+    tdh: 30,
+    pvPreset: "1330",
+    areaAcres: 1.0,
+    depthMm: 4.0,
+    daysPerYear: 200,
+    petrolLitresPerDay: 2.5,
+    petrolPrice: 1.50,
+};
+
+  const els = {
+    tdh: document.getElementById("tdh"),
+    pvPreset: document.getElementById("pvPreset"),
+    areaAcres: document.getElementById("areaAcres"),
+    depthMm: document.getElementById("depthMm"),
+    daysPerYear: document.getElementById("daysPerYear"),
+    petrolLitresPerDay: document.getElementById("petrolLitresPerDay"),
+    petrolPrice: document.getElementById("petrolPrice"),
+resetBtn: document.getElementById("resetBtn"),
+    statusPill: document.getElementById("statusPill"),
+    kpiSavings: document.getElementById("kpiSavings"),
+    kpiSavingsSub: document.getElementById("kpiSavingsSub"),
+    kpiDemand: document.getElementById("kpiDemand"),
+    kpiDemandSub: document.getElementById("kpiDemandSub"),
+    kpiPetrolYear: document.getElementById("kpiPetrolYear"),
+    kpiPetrolYearSub: document.getElementById("kpiPetrolYearSub"),
+    avgM3: document.getElementById("avgM3"),
+    highM3: document.getElementById("highM3"),
+    avgNote: document.getElementById("avgNote"),
+    highNote: document.getElementById("highNote"),
+    solarSummary: document.getElementById("solarSummary"),
+    peakFlow: document.getElementById("peakFlow"),
+    midFlow: document.getElementById("midFlow"),
+    warnings: document.getElementById("warnings"),
+    pumpChart: document.getElementById("pumpChart"),
+    dailyChart: document.getElementById("dailyChart"),
+};
+
+  function warningCard(kind, title, body) {
+    const cls = kind === "bad" ? "badbox" : (kind === "warn" ? "warnbox" : "");
+    return `
+      <div class="callout ${cls}" style="margin-top:12px;">
+        <strong class="${kind}">${title}</strong><br/>
+        ${body}
+      </div>
+    `;
+  }
+
+  function drawPumpCurveChart(tdh) {
+    const curve = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.pump_curve_head_vs_flow_by_power["800We"];
+    const pts = curve.map(p=>({ x: p.flow_m3_per_h, y: p.head_m }));
+    const xMax = Math.max(...pts.map(p=>p.x));
+    const yMax = Math.max(...pts.map(p=>p.y));
+    const markerFlow = flowAtHead("800We", tdh);
+    const marker = (markerFlow === null) ? null : { x: markerFlow, y: tdh };
+
+    drawChart(els.pumpChart, {
+      title: "Pump curve (800We)",
+      xLabel: "Flow (m³/h)",
+      yLabel: "Head (m)",
+      xMin: 0, xMax,
+      yMin: 0, yMax,
+      tickStepX: 1,
+      tickStepY: 10,
+      series: [{ name: "", color: "#006A92", points: pts, width: 2.6 }],
+      marker
+    });
+  }
+
+  function drawDailyChart(pvPreset, tdh) {
+    // NOTE: axes swapped per request: X = daily output (m³/day), Y = head (m)
+    const daily = SOLARPLEX_DATA.curves_digitised_from_datasheet_charts.daily_output;
+    const key = pvPreset === "1100" ? "pv_array_1100wp" : "pv_array_1330wp";
+
+    const avg = daily[key].volume_m3_per_day["average"].map(p => ({ x: p.volume_m3_per_day, y: p.head_m }));
+    const high = daily[key].volume_m3_per_day["high"].map(p => ({ x: p.volume_m3_per_day, y: p.head_m }));
+
+    const all = avg.concat(high);
+    const xMax = Math.max(...all.map(p => p.x));
+    const yMax = Math.max(...all.map(p => p.y));
+
+    const vAvg = dailyAtHead(pvPreset, "average", tdh).vol;
+    const marker = (vAvg === null) ? null : { x: vAvg, y: tdh };
+
+    drawChart(els.dailyChart, {
+      title: `Daily output (${pvPreset === "1100" ? "1100Wp" : "1330Wp"})`,
+      xLabel: "m³/day",
+      yLabel: "Head (m)",
+      tickStepX: 10,
+      tickStepY: 10,
+      xMin: 0, xMax,
+      yMin: 0, yMax,
+      series: [
+        { name: "Avg", color: "#085877", points: avg, width: 2.6 },
+        { name: "High", color: "#77B82A", points: high, width: 2.6 }
+      ],
+      marker
+    });
+  }
+
+  function compute() {
+    const tdh = parseFloat(els.tdh.value);
+    const pvPreset = els.pvPreset.value;
+    const areaAcres = parseFloat(els.areaAcres.value);
+    const depthMm = parseFloat(els.depthMm.value);
+    const daysPerYear = parseFloat(els.daysPerYear.value);
+    const petrolLitresPerDay = parseFloat(els.petrolLitresPerDay.value);
+    const petrolPrice = parseMoneyInput(els.petrolPrice.value);
+const warnings = [];
+    const isValid = (v)=> Number.isFinite(v) && v>=0;
+
+    if (!isValid(tdh) || tdh <= 0) warnings.push(warningCard("bad","Check head input","Total Dynamic Head should be a positive number (m)."));
+    if (!isValid(areaAcres) || areaAcres <= 0) warnings.push(warningCard("bad","Check area input","Land area should be a positive number (acres)."));
+    if (!isValid(depthMm) || depthMm <= 0) warnings.push(warningCard("bad","Check depth input","Irrigation depth should be a positive number (mm/day)."));
+    if (!isValid(daysPerYear) || daysPerYear <= 0) warnings.push(warningCard("bad","Check days/year","Irrigation days per year should be a positive number."));
+    if (!isValid(petrolLitresPerDay) || petrolLitresPerDay < 0) warnings.push(warningCard("bad","Check petrol litres","Petrol litres per irrigation day must be ≥ 0."));
+    if (!isValid(petrolPrice) || petrolPrice < 0) warnings.push(warningCard("bad","Check petrol price","Petrol price must be ≥ 0 (e.g., 1.50)."));
+const demandM3Day = waterDemandM3PerDay(areaAcres, depthMm);
+    const demandM3Year = demandM3Day * daysPerYear;
+
+    const avg = dailyAtHead(pvPreset, "average", tdh);
+    const high = dailyAtHead(pvPreset, "high", tdh);
+
+    const peakFlow = flowAtHead("800We", tdh);
+    const midFlow  = flowAtHead("600We", tdh);
+
+    // Petrol economics
+    const annualPetrolCost = petrolLitresPerDay * petrolPrice * daysPerYear;
+    const annualSavings = annualPetrolCost;
+    const savingsPerM3 = (demandM3Year > 0) ? (annualSavings / demandM3Year) : null;
+
+    // Solar feasibility
+    const avgMeets = (avg.vol !== null) ? (avg.vol >= demandM3Day) : false;
+    const highMeets = (high.vol !== null) ? (high.vol >= demandM3Day) : false;
+
+    // Main KPIs
+    els.kpiSavings.textContent = money0(annualSavings);
+    els.kpiSavingsSub.textContent = Number.isFinite(savingsPerM3)
+      ? `Fuel spend avoided: ${money0(annualPetrolCost)}/yr • ≈ ${fmt(savingsPerM3,2)} $/m³`
+      : `Fuel spend avoided: ${money0(annualPetrolCost)}/yr`;
+
+    els.kpiDemand.textContent = `${fmt(demandM3Day,1)} m³/day`;
+    els.kpiDemandSub.textContent = `${fmt(demandM3Year,0)} m³/year over ${fmt(daysPerYear,0)} days`;
+
+    els.kpiPetrolYear.textContent = `${money0(annualPetrolCost)}/yr`;
+    els.kpiPetrolYearSub.textContent = `${fmt(petrolLitresPerDay,1)} L/day × ${money2(petrolPrice)}/L × ${fmt(daysPerYear,0)} days`;
+
+    const pvLabel = pvPreset === "1100" ? "1100 Wp" : "1330 Wp";
+    els.solarSummary.textContent = `Using datasheet daily output curves for ${pvLabel} at ${fmt(tdh,1)} m head.`;
+
+    els.avgM3.textContent = (avg.vol === null) ? "—" : `${fmt(avg.vol,1)} m³/day`;
+    els.highM3.textContent = (high.vol === null) ? "—" : `${fmt(high.vol,1)} m³/day`;
+
+    els.avgNote.textContent = (avg.vol === null)
+      ? "Head out of datasheet curve range."
+      : `${avgMeets ? "Meets" : "Does not meet"} your ${fmt(demandM3Day,1)} m³/day. Max ≈ ${fmt(avg.area,2)} acres @ 4mm/day.`;
+
+    els.highNote.textContent = (high.vol === null)
+      ? "Head out of datasheet curve range."
+      : `${highMeets ? "Meets" : "Does not meet"} your ${fmt(demandM3Day,1)} m³/day. Max ≈ ${fmt(high.area,2)} acres @ 4mm/day.`;
+
+    els.peakFlow.textContent = (peakFlow === null) ? "—" : `${fmt(peakFlow,2)} m³/h`;
+    els.midFlow.textContent = (midFlow === null) ? "—" : `${fmt(midFlow,2)} m³/h`;
+
+    // Warnings when solar doesn't meet demand
+    if (avg.vol !== null && !avgMeets) {
+      const short = demandM3Day - avg.vol;
+      warnings.push(warningCard("warn","Average-day shortfall",
+        `On an average insolation day, you’re short by <strong>${fmt(short,1)} m³/day</strong>. Options: reduce head (bigger pipe / lower outlet pressure), select 1330Wp PV, or reduce irrigated area/depth.`));
+    }
+    if (high.vol !== null && !highMeets) {
+      const short = demandM3Day - high.vol;
+      warnings.push(warningCard("bad","High-day shortfall",
+        `Even on a high insolation day, you’re short by <strong>${fmt(short,1)} m³/day</strong> at this head. Consider reducing head, reducing area/depth, or adding storage + longer pumping window.`));
+    }
+    if (peakFlow === null) {
+      warnings.push(warningCard("warn","Head beyond pump curve",
+        `Your TDH is outside the embedded pump-curve range for the 800We curve. Check the head input and ensure it’s within the pump’s operating envelope.`));
+    }
+
+    els.warnings.innerHTML = warnings.join("");
+
+    let status = "Ready", cls = "";
+    if (warnings.some(w=>w.includes('class="bad"'))) { status="Check inputs"; cls="bad"; }
+    else if (warnings.some(w=>w.includes('class="warn"'))) { status="Review warnings"; cls="warn"; }
+
+    els.statusPill.textContent = status;
+    els.statusPill.style.borderColor = cls==="bad" ? "rgba(185,28,28,.35)" : (cls==="warn" ? "rgba(180,83,9,.35)" : "rgba(0,106,146,.25)");
+    els.statusPill.style.color = cls==="bad" ? "#B91C1C" : (cls==="warn" ? "#B45309" : "#51606D");
+    els.statusPill.style.background = cls==="bad" ? "rgba(185,28,28,.06)" : (cls==="warn" ? "rgba(180,83,9,.06)" : "rgba(0,106,146,.06)");
+
+    drawPumpCurveChart(tdh);
+    drawDailyChart(pvPreset, tdh);
+  }
+
+  function setDefaults() {
+    els.tdh.value = defaults.tdh;
+    els.pvPreset.value = defaults.pvPreset;
+    els.areaAcres.value = defaults.areaAcres;
+    els.depthMm.value = defaults.depthMm;
+    els.daysPerYear.value = defaults.daysPerYear;
+    els.petrolLitresPerDay.value = defaults.petrolLitresPerDay;
+    els.petrolPrice.value = defaults.petrolPrice.toFixed(2);
+compute();
+  }
+
+  // format petrol price to 2dp on blur
+  els.petrolPrice.addEventListener("blur", () => {
+    const v = parseMoneyInput(els.petrolPrice.value);
+    if (Number.isFinite(v)) els.petrolPrice.value = formatMoneyInput(v);
+  });
+
+  ["tdh","pvPreset","areaAcres","depthMm","daysPerYear","petrolLitresPerDay","petrolPrice"]
+    .forEach(id => document.getElementById(id).addEventListener("input", compute));
+
+  document.getElementById("resetBtn").addEventListener("click", setDefaults);
+
+  setDefaults();
+</script>
+</body>
+</html>
