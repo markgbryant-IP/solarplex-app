@@ -814,7 +814,38 @@ compute();
     .forEach(id => document.getElementById(id).addEventListener("input", compute));
 
   document.getElementById("resetBtn").addEventListener("click", setDefaults);
+  function applyURLParams() {
+    const p = new URLSearchParams(window.location.search);
+    let hasParams = false;
 
+    if (p.get('head'))   { els.tdh.value                = parseFloat(p.get('head'));              hasParams = true; }
+    if (p.get('area'))   { els.areaAcres.value           = parseFloat(p.get('area'));              hasParams = true; }
+    if (p.get('depth'))  { els.depthMm.value             = parseFloat(p.get('depth'));             hasParams = true; }
+    if (p.get('days'))   { els.daysPerYear.value          = parseFloat(p.get('days'));              hasParams = true; }
+    if (p.get('petrol')) { els.petrolLitresPerDay.value   = parseFloat(p.get('petrol'));            hasParams = true; }
+    if (p.get('price'))  { els.petrolPrice.value          = parseFloat(p.get('price')).toFixed(2); hasParams = true; }
+    if (p.get('pv'))     { els.pvPreset.value             = p.get('pv');                           hasParams = true; }
+
+    if (hasParams) {
+      compute();      // populate with the customer's pre-filled figures
+    } else {
+      setDefaults();  // no URL params — load defaults as normal
+    }
+  }
+
+  applyURLParams();
+```
+
+---
+
+**That's the entire fix.** Nothing else in the file needs to change.
+
+**How it works:** when the page loads it checks whether there are any parameters in the URL. If there are (i.e. someone arrived via the WhatsApp bot link), it populates all the inputs from those values and runs `compute()` immediately — so the customer lands with their results already calculated. If there are no URL parameters (someone just browses to the page normally), it falls back to `setDefaults()` exactly as before.
+
+**To test it locally** before pushing to GitHub, save the file and open it in your browser with a URL like:
+```
+file:///C:/your-path/petrol.html?head=25&area=0.25&depth=5&days=240&petrol=1.5&price=1.10&pv=1330
+  
   setDefaults();
 </script>
 </body>
