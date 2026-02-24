@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Impact Pumps — SolarPlex Petrol Savings Estimator</title>
+  <style>
+    :root {
+      --ip-blue: #006A92;
+      --ip-blue-2: #085877;
+      --ip-green: #77B82A;
+      --bg: #F6F8FA;
+      --card: #FFFFFF;
+      --text: #0B1320;
+      --muted: #51606D;
+      --border: #D9E1E7;
+      --warn: #B45309;
+      --bad: #B91C1C;
+      --good: #15803D;
+      --shadow: 0 6px 22px rgba(11,19,32,.08);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 65%);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,.82);
+      border-bottom: 1px solid var(--border);
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 14px 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 38px; height: 38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--ip-blue) 0%, var(--ip-green) 100%);
+      box-shadow: 0 10px 20px rgba(0,106,146,.18);
+      display: grid; place-items: center;
+      color: #fff; font-weight: 800; letter-spacing: .5px; user-select: none;
+    }
+    h1 { font-size: 16px; margin: 0; line-height: 1.1; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    main .wrap { padding-top: 18px; padding-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 16px; align-items: start; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-h { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .card-h h2 { font-size: 14px; margin: 0; }
+    .card-b { padding: 14px 16px 16px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px 11px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: #fff; outline: none; }
+    input:focus, select:focus { border-color: rgba(0,106,146,.55); box-shadow: 0 0 0 3px rgba(0,106,146,.12); }
+    .money-wrap { position: relative; }
+    .money-wrap .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 800; pointer-events: none; }
+    .money-wrap input { padding-left: 22px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.45; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: var(--muted); background: #fff; }
+    .hero { border: 1px solid rgba(119,184,42,.28); background: linear-gradient(135deg, rgba(119,184,42,.16) 0%, rgba(0,106,146,.10) 100%); border-radius: 16px; padding: 14px 14px 12px; margin-bottom: 12px; }
+    .hero .t { font-size: 12px; color: var(--ip-blue-2); font-weight: 800; text-transform: uppercase; letter-spacing: .8px; }
+    .hero .v { font-size: 38px; font-weight: 900; margin-top: 4px; letter-spacing: -1px; color: var(--text); }
+    .hero .s { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+    .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
+    .kpi { border: 1px solid var(--border); background: #fff; border-radius: 14px; padding: 12px; }
+    .kpi .t { font-size: 12px; color: var(--muted); }
+    .kpi .v { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -.2px; }
+    .kpi .s { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+    .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+    .hr { height: 1px; background: var(--border); margin: 14px 0; }
+    .callout { border-left: 4px solid var(--ip-blue); background: rgba(0,106,146,.06); border-radius: 12px; padding: 10px 12px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .callout strong { color: var(--text); }
+    .warnbox { border-left-color: var(--warn); background: rgba(180,83,9,.07); }
+    .badbox { border-left-color: var(--bad); background: rgba(185,28,28,.07); }
+    details { border: 1px solid var(--border); border-radius: 14px; background: #fff; padding: 10px 12px; }
+    summary { cursor: pointer; font-weight: 700; font-size: 13px; }
+    .mini { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .chart { width: 100%; height: 320px; margin-top: 10px; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(180deg, #fff 0%, #fbfcfd 100%); }
+    .footer { margin-top: 14px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+    .btn { appearance: none; border: 1px solid rgba(0,106,146,.35); background: rgba(0,106,146,.06); color: var(--ip-blue-2); padding: 9px 11px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 13px; }
+    .btn:hover { background: rgba(0,106,146,.10); }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">IP</div>
+      <div>
+        <h1>SolarPlex Petrol Savings Estimator</h1>
+        <div class="subtitle">Simple sizing + annual fuel savings (datasheet-based curves)</div>
+      </div>
+      <div style="margin-left:auto"><span class="pill">SPX-800-5</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Inputs</h2>
+          <button class="btn" id="resetBtn" type="button">Reset defaults</button>
+        </div>
+        <div class="card-b">
+          <div class="row">
+            <div>
+              <label>Total Dynamic Head (m)</label>
+              <input type="number" step="0.1" id="tdh" />
+              <div class="hint">All-in head: lift + pipe losses + outlet pressure head.</div>
+            </div>
+            <div>
+              <label>PV preset</label>
+              <select id="pvPreset">
+                <option value="1330">1330 Wp (2 × 665 Wp)</option>
+                <option value="1100">1100 Wp (2 × 550 Wp)</option>
+              </select>
+              <div class="hint">Daily output uses datasheet "Average" and "High" day curves.</div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="row">
+            <div>
+              <label>Land area (acres)</label>
+              <input type="number" step="0.01" id="areaAcres" />
+            </div>
+            <div>
+              <label>Irrigation depth (mm/day)</label>
+              <input type="number" step="0.1" id="depthMm" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Irrigation days per year</label>
+              <input type="number" step="1" id="daysPerYear" />
+            </div>
+            <div>
+              <label>Petrol used per irrigation day (litres)</label>
+              <input type="number" step="0.1" id="petrolLitresPerDay" />
+              <div class="hint">Fuel burned on an irrigation day (run time × L/hr).</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Petrol price</label>
+              <div class="money-wrap">
+                <span class="prefix">$</span>
+                <input type="text" inputmode="decimal" id="petrolPrice" />
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>How this works:</strong> We compute your water requirement from area × depth, then compare it to
+            SolarPlex datasheet daily output at your head (Average/High day). Petrol savings are your annual fuel spend avoided.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Results</h2>
+          <span class="pill" id="statusPill">Ready</span>
+        </div>
+        <div class="card-b">
+          <div class="hero">
+            <div class="t">Estimated annual fuel savings</div>
+            <div class="v" id="kpiSavings">$0</div>
+            <div class="s" id="kpiSavingsSub">—</div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="t">Water required</div>
+              <div class="v" id="kpiDemand">0 m³/day</div>
+              <div class="s" id="kpiDemandSub">—</div>
+            </div>
+            <div class="kpi">
+              <div class="t">Petrol baseline</div>
+              <div class="v" id="kpiPetrolYear">$0/yr</div>
+              <div class="s" id="kpiPetrolYearSub">—</div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="kpis" style="grid-template-columns:1fr;">
+            <div class="kpi">
+              <div class="t">SolarPlex output at your head (datasheet curves)</div>
+              <div class="s" id="solarSummary">—</div>
+              <div class="hr" style="margin:10px 0;"></div>
+              <div class="row" style="margin:0;">
+                <div class="kpi" style="padding:10px; box-shadow:none;">
+                  <div class="t">Average day</div>
+                  <div class="v" id="avgM3">—</div>
+                  <div class="s" id="avgNote">—</div>
+                </div>
+                <div class="kpi" style="padding:10px; box-shadow:none;">
+                  <div class="t">High day</div>
+                  <div class="v" id="highM3">—</div>
+                  <div class="s" id="highNote">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="t">Peak flow at head (pump curve)</div>
+              <div class="v" id="peakFlow">—</div>
+              <div class="s">From 800We curve (full sun / max power).</div>
+            </div>
+            <div class="kpi">
+              <div class="t">Mid-power flow at head</div>
+              <div class="v" id="midFlow">—</div>
+              <div class="s">From 600We curve (indicative lower-sun operation).</div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div id="warnings"></div>
+          <div class="footer">
+            Based on digitised SPX-800-5 datasheet charts. Field results vary with irradiance, temperature, shading, installation quality, and water source behaviour.
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <div class="card-h">
+          <h2>Technical charts</h2>
+          <span class="pill">Datasheet curves</span>
+        </div>
+        <div class="card-b">
+          <details open>
+            <summary>Charts</summary>
+            <div class="hint">Charts plot the embedded datasheet curves and your operating point.</div>
+            <svg class="chart" id="pumpChart" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="mini">Pump curve: Head vs Flow (800We) with your TDH marker.</div>
+            <svg class="chart" id="dailyChart" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="mini">Daily output: m³/day vs Head for Average and High day (selected PV preset).</div>
+          </details>
+          <div class="footer" style="margin-top:12px;">
+            Tip: Use these charts to sanity-check operating point vs head/flow and daily volume vs head.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  const SOLARPLEX_DATA = {"product":{"brand":"Impact Pumps","model":"SolarPlex SPX-800-5","datasheet":"SolarPlex_SPX-800-5_Datasheet_v3-2.pdf","user_guide":"SOLARPLEX-SPX-800-5-Userguide-v2-4-100824.pdf","brand_colors":{"primary_blue":"#006090","primary_green":"#70B020","neutral_dark":"#0B1320","neutral_light":"#F6F8FA"}},"specs_from_datasheet":{"rated_power_w":800,"operating_voltage_range_v":[30,100],"max_flow_m3_per_h":5.4,"max_head_m":75,"inlet_outlet_thread_inch":1,"protection_rating":"IP56","warranty_years":2,"notes":["Fresh water, 0\u201335\u00b0C. pH 6.5\u20138.5. Sand \u2264 1 g/L. Salinity \u2264 7 g/L.","Control inputs: ON/OFF or PWM; dry-run switch input; tank overflow switch input; RS-485."]},"curves_digitised_from_datasheet_charts":{"pump_curve_head_vs_flow_by_power":{"800We":[{"flow_m3_per_h":0.0,"head_m":74.86},{"flow_m3_per_h":0.5,"head_m":68.38},{"flow_m3_per_h":1.0,"head_m":61.91},{"flow_m3_per_h":1.5,"head_m":55.43},{"flow_m3_per_h":2.0,"head_m":48.95},{"flow_m3_per_h":2.5,"head_m":42.47},{"flow_m3_per_h":3.0,"head_m":35.99},{"flow_m3_per_h":3.5,"head_m":29.51},{"flow_m3_per_h":4.0,"head_m":23.03},{"flow_m3_per_h":4.5,"head_m":16.55},{"flow_m3_per_h":5.0,"head_m":10.07},{"flow_m3_per_h":5.41,"head_m":4.76}],"600We":[{"flow_m3_per_h":0.0,"head_m":60.8},{"flow_m3_per_h":0.5,"head_m":54.99},{"flow_m3_per_h":1.0,"head_m":49.19},{"flow_m3_per_h":1.5,"head_m":43.38},{"flow_m3_per_h":2.0,"head_m":37.58},{"flow_m3_per_h":2.5,"head_m":31.77},{"flow_m3_per_h":3.0,"head_m":25.97},{"flow_m3_per_h":3.5,"head_m":20.16},{"flow_m3_per_h":4.0,"head_m":14.36},{"flow_m3_per_h":4.5,"head_m":8.55},{"flow_m3_per_h":5.0,"head_m":2.75},{"flow_m3_per_h":5.25,"head_m":0.0}],"400We":[{"flow_m3_per_h":0.0,"head_m":43.45},{"flow_m3_per_h":0.5,"head_m":38.52},{"flow_m3_per_h":1.0,"head_m":33.6},{"flow_m3_per_h":1.5,"head_m":28.67},{"flow_m3_per_h":2.0,"head_m":23.74},{"flow_m3_per_h":2.5,"head_m":18.81},{"flow_m3_per_h":3.0,"head_m":13.88},{"flow_m3_per_h":3.5,"head_m":8.95},{"flow_m3_per_h":4.0,"head_m":4.02},{"flow_m3_per_h":4.43,"head_m":0.0}],"200We":[{"flow_m3_per_h":0.0,"head_m":28.33},{"flow_m3_per_h":0.5,"head_m":24.24},{"flow_m3_per_h":1.0,"head_m":20.16},{"flow_m3_per_h":1.5,"head_m":16.07},{"flow_m3_per_h":2.0,"head_m":11.98},{"flow_m3_per_h":2.5,"head_m":7.89},{"flow_m3_per_h":3.0,"head_m":3.81},{"flow_m3_per_h":3.49,"head_m":0.0}],"100We":[{"flow_m3_per_h":0.0,"head_m":13.63},{"flow_m3_per_h
