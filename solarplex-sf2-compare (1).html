@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolarPlex vs SF2 — Distributor Comparison Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ip-orange: #E8741A;
+    --ip-dark:   #1A2D4A;
+    --ip-mid:    #2E4A6A;
+    --ip-light:  #F0F4F8;
+    --sf2-grey:  #5A6A7A;
+    --sf2-bg:    #EEF1F4;
+    --green:     #2E9B5F;
+    --red:       #C0392B;
+    --amber:     #D68910;
+    --white:     #FFFFFF;
+    --text:      #1A2530;
+    --muted:     #6B7A8D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--ip-light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ip-dark);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.015) 40px,
+      rgba(255,255,255,0.015) 80px
+    );
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    position: relative;
+    z-index: 1;
+    border-bottom: 3px solid var(--ip-orange);
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-mark {
+    width: 40px; height: 40px;
+    background: var(--ip-orange);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 20px;
+    color: white; letter-spacing: -1px;
+  }
+  .brand-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: white; letter-spacing: 1px;
+  }
+  .brand-text span { color: var(--ip-orange); }
+  .header-title {
+    text-align: right;
+  }
+  .header-title h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: white; letter-spacing: 0.5px;
+  }
+  .header-title p {
+    font-size: 11px; color: rgba(255,255,255,0.5);
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+  }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* ── SCENARIO BUTTONS ── */
+  .scenario-bar {
+    background: white;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .scenario-bar h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .scenario-btns {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .scenario-btn {
+    background: var(--ip-light);
+    border: 1.5px solid #D0D8E4;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--ip-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+  .scenario-btn:hover, .scenario-btn.active {
+    background: var(--ip-dark);
+    color: white; border-color: var(--ip-dark);
+  }
+  .scenario-btn.active { border-color: var(--ip-orange); background: var(--ip-orange); }
+  .scenario-btn small {
+    display: block; font-size: 11px;
+    font-weight: 400; opacity: 0.75;
+    font-family: 'Barlow', sans-serif;
+  }
+
+  /* ── INPUT PANEL ── */
+  .input-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .input-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .input-section h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #E8EDF3;
+  }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--muted); margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  input[type=number], select {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid #D0D8E4;
+    border-radius: 6px; font-size: 15px;
+    font-family: 'Barlow', sans-serif;
+    color: var(--text); background: white;
+    transition: border-color 0.15s;
+  }
+  input[type=number]:focus, select:focus {
+    outline: none; border-color: var(--ip-orange);
+  }
+  /* Three-way linked price calculator */
+  .trilink-row {
+    display: grid;
+    grid-template-columns: 1fr 20px 1fr 20px 1fr;
+    gap: 4px;
+    align-items: start;
+  }
+  .trilink-cell input {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .trilink-cell.spx-tri input {
+    border-color: #E8741A;
+    background: #FFF8F3;
+  }
+  .trilink-cell.spx-tri input:focus {
+    border-color: #E8741A;
+    background: white;
+  }
+  .trilink-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--muted); margin-bottom: 3px;
+  }
+  .trilink-sub {
+    font-size: 10px; color: var(--muted); margin-top: 3px;
+  }
+  .trilink-op {
+    text-align: center; font-weight: 700;
+    color: var(--muted); font-size: 16px;
+    padding-top: 22px;
+  }
+
+  .field-hint {
+    font-size: 11px; color: var(--muted);
+    margin-top: 4px; line-height: 1.4;
+  }
+  .irr-type-select { width: 100%; }
+
+  /* price section styling */
+  .price-section { border-top: 2px solid var(--ip-orange); padding-top: 16px; margin-top: 4px; }
+  .price-mode-tabs {
+    display: flex; gap: 0; margin-bottom: 12px;
+    border: 1.5px solid #D0D8E4; border-radius: 6px; overflow: hidden;
+  }
+  .price-tab {
+    flex: 1; padding: 7px; text-align: center;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; background: var(--ip-light);
+    color: var(--muted); transition: all 0.15s;
+    border: none;
+  }
+  .price-tab.active { background: var(--ip-dark); color: white; }
+
+  /* ── COMPUTE BUTTON ── */
+  .compute-wrap { text-align: center; margin-bottom: 24px; }
+  .compute-btn {
+    background: var(--ip-orange); color: white;
+    border: none; border-radius: 8px;
+    padding: 14px 48px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 3px 12px rgba(232,116,26,0.35);
+  }
+  .compute-btn:hover {
+    background: #CC6314;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(232,116,26,0.4);
+  }
+
+  /* ── RESULTS AREA ── */
+  #results { display: none; }
+  #results.show { display: block; }
+
+  /* ── VERDICT BANNER ── */
+  .verdict {
+    border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .verdict.win { background: #E8F5EE; border: 2px solid var(--green); }
+  .verdict.partial { background: #FEF9EC; border: 2px solid var(--amber); }
+  .verdict.fail { background: #FDEDEC; border: 2px solid var(--red); }
+  .verdict-icon { font-size: 28px; flex-shrink: 0; }
+  .verdict-text h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+  }
+  .verdict-text p { font-size: 13px; margin-top: 3px; color: var(--muted); }
+
+  /* ── COMPARISON CARDS ── */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .card {
+    background: white; border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .card.winner { box-shadow: 0 0 0 2px var(--green), 0 4px 16px rgba(46,155,95,0.15); }
+  .card-head {
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-head.spx { background: var(--ip-dark); }
+  .card-head.sf2 { background: var(--sf2-grey); }
+  .card-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 8px; border-radius: 3px;
+    background: rgba(255,255,255,0.2); color: white;
+    white-space: nowrap;
+  }
+  .card-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: white; flex: 1;
+  }
+  .card-winner-tag {
+    background: var(--ip-orange); color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 700;
+    padding: 3px 10px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card-body { padding: 16px 18px; }
+
+  .metric {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #EEF2F6;
+  }
+  .metric:last-child { border-bottom: none; }
+  .metric-label {
+    font-size: 12px; color: var(--muted);
+    font-weight: 500; flex: 1;
+  }
+  .metric-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--text); text-align: right;
+  }
+  .metric-value.good { color: var(--green); }
+  .metric-value.bad { color: var(--red); }
+  .metric-value.na { color: var(--muted); font-size: 14px; }
+  .metric-unit {
+    font-size: 11px; font-weight: 400;
+    color: var(--muted); margin-left: 2px;
+  }
+
+  /* capability pill */
+  .cap-pill {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px;
+    margin-top: 8px;
+  }
+  .cap-pill.yes { background: #E8F5EE; color: var(--green); }
+  .cap-pill.partial { background: #FEF9EC; color: var(--amber); }
+  .cap-pill.no { background: #FDEDEC; color: var(--red); }
+
+  /* ── PRICE / ROI SECTION ── */
+  .roi-section {
+    background: white; border-radius: 10px;
+    padding: 20px; margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .roi-section h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #E8EDF3;
+  }
+  .roi-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 1px; background: #E8EDF3; }
+  .roi-cell {
+    background: white; padding: 14px 18px;
+  }
+  .roi-cell.label-cell {
+    background: var(--ip-light);
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--muted);
+    display: flex; align-items: center;
+  }
+  .roi-cell.spx-cell { border-left: 3px solid var(--ip-dark); }
+  .roi-cell.sf2-cell { border-left: 3px solid var(--sf2-grey); }
+  .roi-row-label {
+    font-size: 12px; color: var(--muted); font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .roi-row-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700; color: var(--text);
+  }
+  .roi-row-value.better { color: var(--ip-orange); }
+  .roi-row-value.na { font-size: 16px; color: var(--muted); }
+
+  /* ── KEY DIFFERENCES PANEL ── */
+  .diffs {
+    background: var(--ip-dark); border-radius: 10px;
+    padding: 20px; margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(26,45,74,0.2);
+  }
+  .diffs h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: rgba(255,255,255,0.5); margin-bottom: 14px;
+  }
+  .diff-list { display: flex; flex-direction: column; gap: 10px; }
+  .diff-item {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .diff-icon {
+    width: 22px; height: 22px; flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    margin-top: 1px;
+  }
+  .diff-icon.plus { background: var(--ip-orange); color: white; }
+  .diff-icon.minus { background: #3A5070; color: rgba(255,255,255,0.6); }
+  .diff-text {
+    font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.45;
+  }
+  .diff-text strong { color: white; }
+
+  /* ── NOTES ── */
+  .note {
+    font-size: 11px; color: var(--muted); line-height: 1.5;
+    text-align: center; margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .input-panel { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+    .roi-grid { grid-template-columns: 1fr; }
+    .header-inner { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .header-title { text-align: left; }
+    .scenario-btns { flex-direction: column; }
+  }
+
+  /* animate results in */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #results.show > * {
+    animation: slideUp 0.3s ease both;
+  }
+  #results.show > *:nth-child(2) { animation-delay: 0.06s; }
+  #results.show > *:nth-child(3) { animation-delay: 0.12s; }
+  #results.show > *:nth-child(4) { animation-delay: 0.18s; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="brand-mark">IP</div>
+      <div class="brand-text">IMPACT <span>PUMPS</span></div>
+    </div>
+    <div class="header-title">
+      <h1>SolarPlex vs Futurepump SF2</h1>
+      <p>Distributor Comparison Tool · Confidential</p>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- SCENARIOS -->
+  <div class="scenario-bar">
+    <h2>Quick Scenarios</h2>
+    <div class="scenario-btns">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6B7A8D;margin-bottom:6px;width:100%;">Surface irrigation &middot; 5 m head &middot; flood / furrow</div>
+      <button class="scenario-btn" onclick="applyScenario(0)">0.5 acre &middot; 5 m<small>Surface water, flood</small></button>
+      <button class="scenario-btn" onclick="applyScenario(1)">1 acre &middot; 5 m<small>Surface water, flood</small></button>
+      <button class="scenario-btn" onclick="applyScenario(2)">1.5 acres &middot; 5 m<small>Surface water, flood</small></button>
+      <button class="scenario-btn" onclick="applyScenario(3)">2 acres &middot; 5 m<small>Surface water, flood</small></button>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6B7A8D;margin:10px 0 6px;width:100%;">Sprinkler irrigation &middot; 15 m head</div>
+      <button class="scenario-btn" onclick="applyScenario(4)">0.5 acre &middot; 15 m<small>Borehole, sprinkler</small></button>
+      <button class="scenario-btn" onclick="applyScenario(5)">1 acre &middot; 15 m<small>Borehole, sprinkler</small></button>
+      <button class="scenario-btn" onclick="applyScenario(6)">1.5 acres &middot; 15 m<small>Borehole, sprinkler</small></button>
+      <button class="scenario-btn" onclick="applyScenario(7)">2 acres &middot; 15 m<small>Borehole, sprinkler</small></button>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="input-panel">
+    <div class="input-section">
+      <h3>Site Requirements</h3>
+      <div class="field">
+        <label>Farm area (acres)</label>
+        <input type="number" id="area" value="1" min="0.1" step="0.5" oninput="checkScenarioMatch();compute()">
+      </div>
+      <div class="field">
+        <label>Total Dynamic Head (metres)</label>
+        <input type="number" id="head" value="5" min="0" step="1" oninput="checkScenarioMatch();compute()" data-irrig-type="flood">
+        <div class="field-hint">Source depth + lift to field + outlet pressure head (sprinklers add ~20 m)</div>
+      </div>
+      <div class="field">
+        <label>Irrigation method</label>
+        <select id="irrigType" class="irr-type-select" onchange="onIrrigTypeChange()">
+          <option value="flood">Flood / furrow (0 m extra pressure)</option>
+          <option value="drip">Drip irrigation (+5 m pressure head)</option>
+          <option value="sprinkler" selected>Standard sprinkler (+20 m pressure head)</option>
+          <option value="impact">Large impact sprinkler (+30 m pressure head)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Irrigation depth (mm/day)</label>
+        <input type="number" id="irrigDepth" value="5" min="1" max="20" step="0.5" oninput="compute()">
+        <div class="field-hint">Typical: flood 6–8 mm, drip 3–4 mm, sprinkler 4–6 mm</div>
+      </div>
+      <div class="field">
+        <label>Peak sun hours per day</label>
+        <input type="number" id="sunHours" value="5.5" min="3" max="8" step="0.5" oninput="compute()">
+        <div class="field-hint">Nigeria: 5–7 h/day. Use 5.5 for conservative estimate.</div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <h3>Pricing Inputs</h3>
+
+      <div class="field">
+        <label>Currency for display</label>
+        <select id="currency">
+          <option value="USD">USD ($)</option>
+          <option value="NGN">Nigerian Naira (₦)</option>
+          <option value="KES">Kenyan Shilling (KSh)</option>
+          <option value="UGX">Ugandan Shilling (USh)</option>
+          <option value="GHS">Ghanaian Cedi (GH₵)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="fxLabel">Exchange rate (USD → local)</label>
+        <input type="number" id="fxRate" value="1" min="0.0001" step="100">
+        <div class="field-hint">Set to 1 if working in USD.</div>
+      </div>
+
+      <!-- SF2 three-way linked price row -->
+      <div class="field">
+        <label>SF2 — FOB, Markup &amp; Retail (edit any field)</label>
+        <div class="trilink-row">
+          <div class="trilink-cell">
+            <div class="trilink-label">FOB price ($)</div>
+            <input type="number" id="sf2Fob" value="389" min="0" step="10" oninput="triUpdate('sf2','fob')">
+            <div class="trilink-sub">ex-factory cost</div>
+          </div>
+          <div class="trilink-op">&times;</div>
+          <div class="trilink-cell">
+            <div class="trilink-label">Markup (%)</div>
+            <input type="number" id="sf2Markup" value="80" min="0" max="1000" step="5" oninput="triUpdate('sf2','markup')">
+            <div class="trilink-sub">freight + duties + margin</div>
+          </div>
+          <div class="trilink-op">=</div>
+          <div class="trilink-cell">
+            <div class="trilink-label">Retail (USD)</div>
+            <input type="number" id="sf2Retail" value="700" min="0" step="10" oninput="triUpdate('sf2','retail')">
+            <div class="trilink-sub">what customer pays</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SolarPlex three-way linked price row -->
+      <div class="field" style="margin-top:14px">
+        <label>SolarPlex — FOB, Markup &amp; Retail (edit any field)</label>
+        <div class="trilink-row">
+          <div class="trilink-cell spx-tri">
+            <div class="trilink-label">FOB price ($)</div>
+            <input type="number" id="spxFob" value="415" min="0" step="10" oninput="triUpdate('spx','fob')">
+            <div class="trilink-sub">China FOB (illustrative)</div>
+          </div>
+          <div class="trilink-op">&times;</div>
+          <div class="trilink-cell spx-tri">
+            <div class="trilink-label">Markup (%)</div>
+            <input type="number" id="markupPct" value="80" min="0" max="1000" step="5" oninput="triUpdate('spx','markup')">
+            <div class="trilink-sub">freight + duties + margin</div>
+          </div>
+          <div class="trilink-op">=</div>
+          <div class="trilink-cell spx-tri">
+            <div class="trilink-label">Retail (USD)</div>
+            <input type="number" id="spxPriceCalc" value="747" min="0" step="10" oninput="triUpdate('spx','retail')">
+            <div class="trilink-sub">illustrative retail</div>
+          </div>
+        </div>
+        <div id="spxPriceNote" style="font-size:11px;color:#6B7A8D;margin-top:5px;"></div>
+      </div>
+
+      <div class="field" style="margin-top:16px">
+        <label>Petrol pump fuel cost</label>
+        <div class="trilink-row">
+          <div class="trilink-cell">
+            <div class="trilink-label">Litres / month</div>
+            <input type="number" id="fuelLitres" value="50" min="0" step="5" oninput="calcFuel()">
+            <div class="trilink-sub">Kenya smallholder: 30–80 L/mo</div>
+          </div>
+          <div class="trilink-op">&times;</div>
+          <div class="trilink-cell">
+            <div class="trilink-label">Price / litre ($)</div>
+            <input type="number" id="fuelUnitPrice" value="1.35" min="0" step="0.05" oninput="calcFuel()">
+            <div class="trilink-sub">Kenya: ~$1.35 (KES 176/L)</div>
+          </div>
+          <div class="trilink-op">=</div>
+          <div class="trilink-cell">
+            <div class="trilink-label">Annual cost ($)</div>
+            <input type="number" id="fuelCost" value="1728" min="0" step="10" oninput="calcFuel('manual')">
+            <div class="trilink-sub">used for payback calc</div>
+          </div>
+        </div>
+        <div class="field-hint" style="margin-top:6px">
+          Edit any field — annual cost updates automatically. Used to calculate payback period vs petrol pump.
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" onclick="estimateFuelFromScenario()" style="
+            padding:4px 10px;
+            font-size:11px; font-weight:700; font-family:'Barlow',sans-serif;
+            color:#1A2D4A; background:#E8EDF3;
+            border:1px solid #C0C8D4; border-radius:4px;
+            cursor:pointer; text-transform:uppercase; letter-spacing:0.4px;
+            white-space:nowrap;
+          ">&#x21BB; Estimate from scenario</button>
+          <span id="fuelEstNote" style="font-size:11px;color:#6B7A8D;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="compute-wrap">
+    <button class="compute-btn" onclick="compute()">COMPARE PUMPS →</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div id="verdictBanner"></div>
+    <div class="cards" id="compCards"></div>
+    <div class="roi-section" id="roiSection"></div>
+    <div class="diffs" id="diffPanel"></div>
+    <p class="note" id="calcNote"></p>
+  </div>
+
+</div>
+
+<script>
+// ── SolarPlex SPX-800-5 DATA ──────────────────────────────────────────────
+const SPX = {
+  name: "SolarPlex SPX-800-5",
+  brand: "Impact Pumps",
+  maxHead: 75,
+  fobUSD: 415,
+  // pump curve: 800W operating point (head → flow m³/h by interpolation)
+  curve800: [
+    {flow:0.0, head:74.86},{flow:0.5, head:68.38},{flow:1.0, head:61.91},
+    {flow:1.5, head:55.43},{flow:2.0, head:48.95},{flow:2.5, head:42.47},
+    {flow:3.0, head:35.99},{flow:3.5, head:29.51},{flow:4.0, head:23.03},
+    {flow:4.5, head:16.55},{flow:5.0, head:10.07},{flow:5.41, head:4.76}
+  ],
+  // daily output from datasheet (average day, 1330Wp PV array)
+  dailyAvg: [
+    {head:5,  vol:45.27},{head:7.5, vol:41.82},{head:10, vol:38.91},
+    {head:15, vol:33.45},{head:20, vol:28.73},{head:30, vol:20.36},
+    {head:40, vol:13.27},{head:50, vol:6.73}, {head:60, vol:1.09}
+  ]
+};
+
+// ── Futurepump SF2 DATA (from official datasheet, 2023) ───────────────────
+// Basis: 120W panels (standard configuration). 240W panels exist but
+// Futurepump warns they may shorten motor life in high-radiation markets.
+// Pulley selection (farmer sets once at installation):
+//   70mm large pulley → optimal for 0–6m total head
+//   40mm small pulley → optimal for >6m total head
+// Datasheet anchor points: 1m=3,600 L/hr; 6.5m=2,200 L/hr (large pulley)
+// Values below are composite of optimal pulley for each head band.
+// IMPORTANT: previous version incorrectly applied the 70mm curve beyond 6m,
+// which underestimated SF2 performance at 8–14m. Corrected here from chart.
+// NOTE: SF2 on 120W panels requires ~400 W/m² irradiance to start pumping.
+// Daily output = peak flow × PSH applies a ~10% overestimate vs reality
+// (shoulder hours below 400 W/m² contribute little). See calc note.
+const SF2 = {
+  name: "Futurepump SF2",
+  brand: "Futurepump",
+  maxHead: 15,
+  // flow L/hr at given head (120W panels, optimal pulley selection)
+  curvePoints: [
+    // 70mm large pulley zone (0–6m) — from datasheet chart + anchor points
+    {head:0,  flow:3600},{head:1, flow:3550},{head:2, flow:3300},
+    {head:3,  flow:3050},{head:4, flow:2800},{head:5, flow:2550},
+    {head:6,  flow:2250},
+    // 40mm small pulley zone (>6m) — from datasheet chart, 120W 40mm curve
+    // Significantly better than large pulley at these heads
+    {head:7,  flow:2100},{head:8, flow:2000},{head:9, flow:1900},
+    {head:10, flow:1750},{head:11, flow:1550},{head:12, flow:1300},
+    {head:13, flow:1000},{head:14, flow:600},{head:15, flow:0}
+  ]
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function interp(pts, xKey, yKey, x) {
+  if (x <= pts[0][xKey]) return pts[0][yKey];
+  if (x >= pts[pts.length-1][xKey]) return pts[pts.length-1][yKey];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i+1];
+    if (x >= a[xKey] && x <= b[xKey]) {
+      const t = (x - a[xKey]) / (b[xKey] - a[xKey]);
+      return a[yKey] + t * (b[yKey] - a[yKey]);
+    }
+  }
+  return null;
+}
+
+// SPX: flow m³/h at given head (invert curve: head→flow)
+function spxFlowAtHead(head) {
+  if (head > SPX.maxHead) return 0;
+  const pts = [...SPX.curve800].sort((a,b)=>a.head-b.head);
+  return Math.max(0, interp(pts, 'head', 'flow', head));
+}
+
+// SPX: daily volume m³ from datasheet average day
+function spxDailyVol(head) {
+  if (head > 65) return 0;
+  const pts = [...SPX.dailyAvg].sort((a,b)=>a.head-b.head);
+  return Math.max(0, interp(pts, 'head', 'vol', head));
+}
+
+// SF2: flow L/hr at given head
+function sf2FlowAtHead(head) {
+  if (head > SF2.maxHead) return 0;
+  return Math.max(0, interp(SF2.curvePoints, 'head', 'flow', head));
+}
+
+// SF2: daily volume m³ (flow × effective sun hours)
+function sf2DailyVol(head, sunHours) {
+  return sf2FlowAtHead(head) / 1000 * sunHours;
+}
+
+// Irrigation demand m³/day for given area + depth
+function irrigDemand(areaAcres, depthMM) {
+  const areaM2 = areaAcres * 4046.86;
+  return (depthMM / 1000) * areaM2;
+}
+
+// Format number
+function fmt(n, dec=1) {
+  if (n == null || isNaN(n)) return '—';
+  return n.toFixed(dec);
+}
+function fmtMoney(n, sym='$') {
+  if (!n || isNaN(n)) return '—';
+  if (n >= 1000) return sym + (n/1000).toFixed(1) + 'k';
+  return sym + n.toFixed(0);
+}
+
+// Fuel cost calculator
+function calcFuel(changed) {
+  const litresEl  = document.getElementById('fuelLitres');
+  const priceEl   = document.getElementById('fuelUnitPrice');
+  const annualEl  = document.getElementById('fuelCost');
+  const litres    = parseFloat(litresEl.value) || 0;
+  const unitPrice = parseFloat(priceEl.value)  || 0;
+  if (changed !== 'manual') {
+    // litres or unit price changed → recalculate annual
+    annualEl.value = Math.round(litres * unitPrice * 12);
+  }
+  // always recompute results
+  compute();
+}
+
+// Estimate petrol pump fuel consumption from current scenario
+// Model: typical 2HP smallholder petrol centrifugal pump
+//   - Flow rate at head derived from a simple centrifugal pump model
+//   - Engine burns ~0.7 L/hr baseline regardless of hydraulic load
+//   - Plus load-dependent fuel from hydraulic work at 30% overall efficiency
+//   - 1.3x real-world factor for warm-up, dry-running, throttle losses
+function estimateFuelFromScenario() {
+  const area      = parseFloat(document.getElementById('area').value) || 1;
+  const head      = parseFloat(document.getElementById('head').value) || 5;
+  const depth     = parseFloat(document.getElementById('irrigDepth').value) || 5;
+  const irrigDays = 25;   // active irrigation days/month during growing season
+  const baseL_hr  = 0.70; // litres/hour engine burns at idle/low load
+  const loadEff   = 0.30; // overall efficiency incl. engine + pump losses
+  const petrolKWh = 8.9;  // kWh per litre
+  const realWorld = 1.3;  // warm-up, dry-running, throttle, pipe losses
+
+  const demandM3day = (depth / 1000) * area * 4046.86; // m³/day
+
+  // Typical 2HP petrol pump flow: ~3 m³/hr at 5m, falling ~0.15 m³/hr per metre of head
+  // Clamp to a minimum of 0.5 m³/hr so we don't divide by zero at high heads
+  const pumpFlowM3hr = Math.max(0.5, 3.0 - (head - 5) * 0.15);
+  const pumpingHrsDay = demandM3day / pumpFlowM3hr;
+
+  // Hydraulic kWh per day
+  const hydraulicKwh = demandM3day * head * 9.81 / 3600;
+  // Load fuel + baseline fuel, per day
+  const loadLitresDay   = hydraulicKwh / loadEff / petrolKWh;
+  const baseLitresDay   = baseL_hr * pumpingHrsDay;
+  const litresPerDay    = (loadLitresDay + baseLitresDay) * realWorld;
+  const litresPerMonth  = Math.max(5, Math.round(litresPerDay * irrigDays / 5) * 5);
+
+  document.getElementById('fuelLitres').value = litresPerMonth;
+  calcFuel();
+
+  const note = document.getElementById('fuelEstNote');
+  if (note) note.textContent =
+    `Est. ${pumpingHrsDay.toFixed(1)} hrs/day pumping · ${demandM3day.toFixed(1)} m³/day · ${irrigDays} days/mo`;
+  const el = document.getElementById('fuelLitres');
+  el.style.borderColor = '#E8741A';
+  setTimeout(() => { el.style.borderColor = ''; }, 1500);
+}
+
+// Three-way linked price calculator
+// Editing FOB or markup → recalculates retail
+// Editing retail → recalculates markup (FOB stays fixed)
+function triUpdate(pump, changed) {
+  const fxRate = parseFloat(document.getElementById('fxRate').value)||1;
+  if (pump === 'spx') {
+    const fobEl    = document.getElementById('spxFob');
+    const markupEl = document.getElementById('markupPct');
+    const retailEl = document.getElementById('spxPriceCalc');
+    let fob    = parseFloat(fobEl.value)||415;
+    let markup = parseFloat(markupEl.value)||80;
+    let retail = parseFloat(retailEl.value)||747;
+    if (changed === 'fob' || changed === 'markup') {
+      retail = Math.round(fob * (1 + markup/100) * fxRate);
+      retailEl.value = retail;
+    } else if (changed === 'retail') {
+      if (fob > 0 && fxRate > 0) {
+        markup = Math.round(((retail / fxRate / fob) - 1) * 100 * 10) / 10;
+        markupEl.value = markup;
+      }
+    }
+    const note = document.getElementById('spxPriceNote');
+    if (note) note.textContent = `$${fob} FOB × ${(1+markup/100).toFixed(2)}x${fxRate!==1?' × '+fxRate+' FX':''}  =  $${retail} retail`;
+  } else if (pump === 'sf2') {
+    const fobEl    = document.getElementById('sf2Fob');
+    const markupEl = document.getElementById('sf2Markup');
+    const retailEl = document.getElementById('sf2Retail');
+    let fob    = parseFloat(fobEl.value)||389;
+    let markup = parseFloat(markupEl.value)||80;
+    let retail = parseFloat(retailEl.value)||700;
+    if (changed === 'fob' || changed === 'markup') {
+      retail = Math.round(fob * (1 + markup/100) * fxRate);
+      retailEl.value = retail;
+    } else if (changed === 'retail') {
+      if (fob > 0 && fxRate > 0) {
+        markup = Math.round(((retail / fxRate / fob) - 1) * 100 * 10) / 10;
+        markupEl.value = markup;
+      }
+    }
+  }
+}
+// Keep backward compat for any remaining previewSpxPrice calls
+function previewSpxPrice() { triUpdate('spx','fob'); }
+
+
+
+// Currency symbols
+const currSym = { USD:'$', NGN:'₦', KES:'KSh ', UGX:'USh ', GHS:'GH₵ ' };
+
+// ── Scenarios ─────────────────────────────────────────────────────────────
+const scenarios = [
+  {area:0.5, head:5,  type:'flood',     depth:5,   sun:5.5, label:'0.5 acre / 5 m head'},
+  {area:1,   head:5,  type:'flood',     depth:5,   sun:5.5, label:'1 acre / 5 m head'},
+  {area:1.5, head:5,  type:'flood',     depth:5,   sun:5.5, label:'1.5 acres / 5 m head'},
+  {area:2,   head:5,  type:'flood',     depth:5,   sun:5.5, label:'2 acres / 5 m head'},
+  {area:0.5, head:15, type:'sprinkler', depth:5,   sun:5.5, label:'0.5 acre / 15 m head'},
+  {area:1,   head:15, type:'sprinkler', depth:5,   sun:5.5, label:'1 acre / 15 m head'},
+  {area:1.5, head:15, type:'sprinkler', depth:5,   sun:5.5, label:'1.5 acres / 15 m head'},
+  {area:2,   head:15, type:'sprinkler', depth:5,   sun:5.5, label:'2 acres / 15 m head'},
+];
+// Track active scenario and pressure-heads mapping
+const pressureHeads = {flood:0, drip:5, sprinkler:20, impact:30};
+let _activeScenario = -1;
+
+function applyScenario(i) {
+  _activeScenario = i;
+  document.querySelectorAll('.scenario-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  const s = scenarios[i];
+  document.getElementById('area').value      = s.area;
+  const hEl = document.getElementById('head');
+  hEl.value = s.head;
+  hEl.dataset.irrigType = s.type;
+  document.getElementById('irrigType').value = s.type;
+  document.getElementById('irrigDepth').value = s.depth;
+  document.getElementById('sunHours').value  = s.sun;
+  compute();
+}
+
+// Check whether current area+head+type still match any scenario button
+// depth and sunHours changes do NOT unhighlight
+function checkScenarioMatch() {
+  const area = parseFloat(document.getElementById('area').value);
+  const head = parseFloat(document.getElementById('head').value);
+  const type = document.getElementById('irrigType').value;
+  let matched = -1;
+  scenarios.forEach((s,i) => {
+    if (s.area === area && s.head === head && s.type === type) matched = i;
+  });
+  _activeScenario = matched;
+  document.querySelectorAll('.scenario-btn').forEach((b,j)=>b.classList.toggle('active', j===matched));
+}
+
+// When irrigation type changes, swap out pressure component of TDH
+function onIrrigTypeChange() {
+  const headEl   = document.getElementById('head');
+  const oldType  = headEl.dataset.irrigType || 'flood';
+  const newType  = document.getElementById('irrigType').value;
+  const oldPress = pressureHeads[oldType]  || 0;
+  const newPress = pressureHeads[newType]  || 0;
+  const oldHead  = parseFloat(headEl.value) || 0;
+  const newHead  = Math.max(0, oldHead - oldPress + newPress);
+  headEl.value   = newHead;
+  headEl.dataset.irrigType = newType;
+  checkScenarioMatch();
+  compute();
+}
+
+// ── Main compute ──────────────────────────────────────────────────────────
+function compute() {
+  const area    = parseFloat(document.getElementById('area').value)||3;
+  const head    = parseFloat(document.getElementById('head').value)||20;
+  const depth   = parseFloat(document.getElementById('irrigDepth').value)||5;
+  const sun     = parseFloat(document.getElementById('sunHours').value)||5.5;
+  const irrigType = document.getElementById('irrigType').value;
+
+  // Determine if SF2 can even provide enough pressure
+  const pressureNeeded = pressureHeads[irrigType] || 0;
+  const sf2CanPressure = pressureNeeded <= 5; // SF2 only handles flood/low drip effectively
+
+  // Prices
+
+  const sf2RetailRaw  = parseFloat(document.getElementById('sf2Retail').value)||null;
+  const markup        = parseFloat(document.getElementById('markupPct').value)||80;
+  const multiplier    = 1 + markup/100;
+  const fxRate        = parseFloat(document.getElementById('fxRate').value)||1;
+  const SPX_FOB       = parseFloat(document.getElementById('spxFob').value)||415;
+  const spxPrice      = parseFloat(document.getElementById('spxPriceCalc').value) || SPX_FOB * multiplier * fxRate;
+  const sf2Price      = sf2RetailRaw || null;
+  const currency      = document.getElementById('currency').value;
+  const sym           = currSym[currency] || '$';
+  const fuelAnnual    = parseFloat(document.getElementById('fuelCost').value)||0;
+
+  // ── PUMP PERFORMANCE ──
+  const demand = irrigDemand(area, depth);
+
+  // SolarPlex
+  const spxFlow  = spxFlowAtHead(head);     // m³/h
+  const spxDaily = spxDailyVol(head);       // m³/day (datasheet average day)
+  const spxMeets = spxDaily >= demand * 0.95;
+  const spxPartial = !spxMeets && spxDaily >= demand * 0.6;
+  const spxAreaCan = spxDaily / (depth / 1000 * 4046.86); // acres irrigatable
+
+  // SF2
+  const sf2Flow  = sf2FlowAtHead(head);         // L/hr
+  const sf2Daily = sf2DailyVol(head, sun);      // m³/day
+  const sf2Meets = sf2Daily >= demand * 0.95 && sf2CanPressure;
+  const sf2Partial = !sf2Meets && sf2Daily >= demand * 0.6 && sf2CanPressure;
+  const sf2AreaCan = sf2Daily / (depth / 1000 * 4046.86);
+
+  // head capability
+  const sf2HeadOk = head <= SF2.maxHead;
+
+  // ── VERDICT ──
+  let verdictClass, verdictIcon, verdictHead, verdictSub;
+  if (!sf2HeadOk && spxMeets) {
+    verdictClass = 'win';
+    verdictIcon = '✅';
+    verdictHead = 'SolarPlex is the only viable option here';
+    verdictSub = `At ${head} m TDH, the SF2 cannot operate (max 15 m). SolarPlex meets demand at this site.`;
+  } else if (!sf2HeadOk && !spxMeets && spxDaily > 0) {
+    verdictClass = 'partial';
+    verdictIcon = '⚠️';
+    verdictHead = 'SolarPlex partially meets demand; SF2 cannot operate';
+    verdictSub = `SF2 max head is 15 m. SolarPlex delivers ${fmt(spxDaily)} m³/day vs ${fmt(demand)} m³/day needed. Consider reducing irrigated area or adding storage.`;
+  } else if (spxMeets && !sf2Meets) {
+    verdictClass = 'win';
+    verdictIcon = '✅';
+    verdictHead = 'SolarPlex meets demand — SF2 cannot';
+    verdictSub = `SolarPlex delivers ${fmt(spxDaily)} m³/day vs ${fmt(demand)} m³/day required. ${!sf2CanPressure ? 'SF2 also lacks pressure for sprinkler irrigation.' : ''}`;
+  } else if (spxMeets && sf2Meets) {
+    verdictClass = 'partial';
+    verdictIcon = '🔶';
+    verdictHead = 'Both pumps technically capable at this head';
+    verdictSub = `Compare daily output, price per m³, and consider farm growth potential. SolarPlex has significantly more headroom.`;
+  } else if (!spxMeets && !sf2Meets) {
+    verdictClass = 'fail';
+    verdictIcon = '❌';
+    verdictHead = 'Neither pump fully meets this demand';
+    verdictSub = `Required: ${fmt(demand,1)} m³/day. SolarPlex delivers ${fmt(spxDaily,1)}, SF2 delivers ${fmt(sf2Daily,1)}. Reduce area, add storage, or reconsider head.`;
+  } else {
+    verdictClass = 'partial';
+    verdictIcon = '⚠️';
+    verdictHead = 'Partial capability — review requirements';
+    verdictSub = `Check head, area and depth inputs.`;
+  }
+
+  // cost per m³ of water delivered
+  const spxM3Cost = spxPrice && spxDaily > 0 ? spxPrice / (spxDaily * 365) : null;
+  const sf2M3Cost = sf2Price && sf2Daily > 0 && sf2HeadOk ? sf2Price / (sf2Daily * 365) : null;
+
+  // payback
+  let spxPayback = null, sf2Payback = null;
+  if (fuelAnnual && spxPrice) spxPayback = spxPrice / fuelAnnual;
+  if (fuelAnnual && sf2Price && sf2HeadOk && sf2Meets) sf2Payback = sf2Price / fuelAnnual;
+
+  // ── RENDER ──
+  const res = document.getElementById('results');
+  res.className = 'show';
+
+  // Verdict
+  document.getElementById('verdictBanner').innerHTML = `
+    <div class="verdict ${verdictClass}">
+      <div class="verdict-icon">${verdictIcon}</div>
+      <div class="verdict-text">
+        <h3>${verdictHead}</h3>
+        <p>${verdictSub}</p>
+      </div>
+    </div>`;
+
+  // Cards
+  function capPill(meets, partial, headOk, canPressure) {
+    if (!headOk) return `<span class="cap-pill no">✗ Exceeds max head (15 m)</span>`;
+    if (!canPressure) return `<span class="cap-pill no">✗ Insufficient pressure for ${irrigType}</span>`;
+    if (meets) return `<span class="cap-pill yes">✓ Meets demand</span>`;
+    if (partial) return `<span class="cap-pill partial">△ Partially meets demand</span>`;
+    return `<span class="cap-pill no">✗ Insufficient output</span>`;
+  }
+
+  document.getElementById('compCards').innerHTML = `
+    <div class="card ${spxMeets?'winner':''}">
+      <div class="card-head spx">
+        <span class="card-badge">Impact Pumps</span>
+        <span class="card-name">SolarPlex SPX-800-5</span>
+        ${spxMeets && !sf2Meets ? '<span class="card-winner-tag">✓ Recommended</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="metric">
+          <span class="metric-label">Peak flow at ${head} m head</span>
+          <span class="metric-value ${spxFlow>0?'good':'bad'}">${spxFlow>0?fmt(spxFlow,1):'—'}<span class="metric-unit">m³/h</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Daily output (1330 Wp, avg. day)</span>
+          <span class="metric-value ${spxDaily>=demand?'good':'bad'}">${fmt(spxDaily,1)}<span class="metric-unit">m³/day</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Demand required</span>
+          <span class="metric-value">${fmt(demand,1)}<span class="metric-unit">m³/day</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Max area irrigable (this head)</span>
+          <span class="metric-value">${fmt(spxAreaCan,1)}<span class="metric-unit">acres</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Max head</span>
+          <span class="metric-value good">75<span class="metric-unit">m</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Sprinkler capability (20 m drive head for efficient irrigation)</span>
+          <span class="metric-value good">Yes ≤ 30 m</span>
+        </div>
+        ${capPill(spxMeets, spxPartial, true, true)}
+      </div>
+    </div>
+
+    <div class="card ${sf2Meets?'winner':''}">
+      <div class="card-head sf2">
+        <span class="card-badge">Futurepump</span>
+        <span class="card-name">SF2</span>
+      </div>
+      <div class="card-body">
+        <div class="metric">
+          <span class="metric-label">Peak flow at ${head} m head</span>
+          <span class="metric-value ${sf2HeadOk&&sf2Flow>0?'':'bad na'}">${sf2HeadOk && sf2Flow>0 ? fmt(sf2Flow/1000,2)+' m³/h' : head>SF2.maxHead ? 'Head > 15 m limit' : '—'}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Daily output (120W panels, avg. day)</span>
+          <span class="metric-value ${sf2HeadOk&&sf2Daily>=demand?'good':'bad'}">${sf2HeadOk?fmt(sf2Daily,1):'0'}<span class="metric-unit">m³/day</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Demand required</span>
+          <span class="metric-value">${fmt(demand,1)}<span class="metric-unit">m³/day</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Max area irrigable (this head)</span>
+          <span class="metric-value ${sf2HeadOk?'':'bad na'}">${sf2HeadOk?fmt(sf2AreaCan,1):'0'}<span class="metric-unit">acres</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Max head</span>
+          <span class="metric-value ${head<=15?'':'bad'}">15<span class="metric-unit">m</span></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Sprinkler capability (20 m drive head for efficient irrigation)</span>
+          <span class="metric-value bad">No</span>
+        </div>
+        ${capPill(sf2Meets, sf2Partial, sf2HeadOk, sf2CanPressure)}
+      </div>
+    </div>`;
+
+  document.getElementById('roiSection').innerHTML = `
+    <h3>Price &amp; Economics</h3>
+    <div class="roi-grid">
+      <div class="roi-cell label-cell"></div>
+      <div class="roi-cell label-cell" style="border-left:3px solid ${sf2HeadOk?'#5A6A7A':'#C0392B'};${!sf2HeadOk?'color:#C0392B;':''}">Futurepump SF2${!sf2HeadOk?' (not viable)':''}</div>
+      <div class="roi-cell label-cell" style="border-left:3px solid #1A2D4A">Impact Pumps SolarPlex</div>
+
+      <div class="roi-cell label-cell">Retail price</div>
+      <div class="roi-cell sf2-cell"><div class="roi-row-value ${!sf2HeadOk?'na':''}">${sf2Price ? fmtMoney(sf2Price, sym) : '—'}</div><div class="roi-row-label">${sf2RetailRaw ? 'entered retail price' : 'indicative retail price'}</div></div>
+      <div class="roi-cell spx-cell"><div class="roi-row-value">${fmtMoney(spxPrice, sym)}</div><div class="roi-row-label">FOB $${SPX_FOB} China × ${multiplier.toFixed(2)}x — illustrative retail for African markets</div></div>
+
+      <div class="roi-cell label-cell">Cost per m³ / year</div>
+      <div class="roi-cell sf2-cell"><div class="roi-row-value">${sf2HeadOk&&sf2M3Cost ? sym+sf2M3Cost.toFixed(2) : '<span style="font-size:12px;font-weight:600;color:var(--red)">Unable to meet customer need</span>'}</div><div class="roi-row-label">${sf2HeadOk&&sf2M3Cost ? 'price \u00f7 annual m\u00b3' : ''}</div></div>
+      <div class="roi-cell spx-cell"><div class="roi-row-value ${spxM3Cost&&spxM3Cost<(sf2M3Cost||9999)?'better':''}">${spxM3Cost ? sym+spxM3Cost.toFixed(2) : '<span style="font-size:12px;font-weight:600;color:var(--red)">Unable to meet customer need</span>'}</div><div class="roi-row-label">${spxM3Cost ? 'price \u00f7 annual m\u00b3' : ''}</div></div>
+
+      <div class="roi-cell label-cell">Payback vs petrol pump</div>
+      <div class="roi-cell sf2-cell"><div class="roi-row-value ${sf2Payback?'':'na'}">${sf2Payback ? sf2Payback.toFixed(1)+' yrs' : '<span style="font-size:12px;font-weight:600;color:var(--red)">Unable to meet customer need</span>'}</div><div class="roi-row-label">${sf2Payback && fuelAnnual ? sym+Math.round(fuelAnnual)+'/yr fuel saving' : ''}</div></div>
+      <div class="roi-cell spx-cell"><div class="roi-row-value ${spxPayback&&(!sf2Payback||spxPayback<sf2Payback)?'better':''}">${spxPayback ? spxPayback.toFixed(1)+' yrs' : '—'}</div><div class="roi-row-label">${fuelAnnual ? sym+Math.round(fuelAnnual)+'/yr fuel saving' : 'enter fuel cost above'}</div></div>
+    </div>`;
+
+  // Differentiators (context-aware)
+  const diffs = [];
+  if (!sf2HeadOk) {
+    diffs.push({plus:true, text:`<strong>SolarPlex is the only viable pump at ${head} m head.</strong> SF2 maximum is 15 m — it cannot operate at this site at all.`});
+  } else if (head > 10) {
+    diffs.push({plus:true, text:`<strong>SolarPlex has ${head > 30 ? 'dramatically' : 'significantly'} more head capability.</strong> At ${head} m, SolarPlex is working well within its 75 m range. SF2 is ${head > SF2.maxHead ? 'beyond its limit' : 'at the edge of its 15 m limit'}.`});
+  }
+  if (!sf2CanPressure) {
+    diffs.push({plus:true, text:`<strong>SF2 cannot deliver sprinkler pressure.</strong> SolarPlex supports up to 30 m outlet pressure, enabling standard sprinkler systems that SF2 cannot run.`});
+  }
+  if (spxAreaCan > sf2AreaCan * 1.5 || !sf2HeadOk) {
+    diffs.push({plus:true, text:`<strong>SolarPlex irrigates ${fmt(spxAreaCan,1)} acres at ${head} m head</strong> — ${sf2HeadOk ? fmt(spxAreaCan/Math.max(sf2AreaCan,0.01),1)+'× more than the SF2\'s '+fmt(sf2AreaCan,1)+' acres at this head.' : 'SF2 cannot operate at this head at all.'}`});
+  }
+  if (spxPrice && sf2Price && sf2HeadOk && spxM3Cost && sf2M3Cost) {
+    if (spxM3Cost < sf2M3Cost) {
+      diffs.push({plus:true, text:`<strong>Lower cost per m³ delivered.</strong> SolarPlex: ${sym}${spxM3Cost.toFixed(2)}/m³ vs SF2: ${sym}${sf2M3Cost.toFixed(2)}/m³ — better economics for the farmer despite higher upfront price.`});
+    }
+  }
+    const spxDailyForValue = spxDaily;
+    const sf2DailyForValue = sf2HeadOk ? sf2Daily : 0;
+    const valueComparison = (spxPrice && sf2Price && sf2HeadOk && spxDailyForValue > 0 && sf2DailyForValue > 0) ?
+      ' Based on retail price per m³/day delivered, SolarPlex is '+Math.round(((sf2Price/sf2DailyForValue) / (spxPrice/spxDailyForValue) - 1) * 100)+'% better value than the SF2 in this scenario.' : '';
+    diffs.push({plus:true, text:`<strong>Room for growth.</strong> SolarPlex can irrigate more land than the SF2 — as farms expand or water sources deepen, it scales to 75 m and 5.4 m³/h. Farmers buying an SF2 today will need a replacement pump when they grow.​${valueComparison}`});
+  // Pumping window differentiator
+  diffs.push({plus:true, text:`<strong>SolarPlex pumps for longer each day.</strong> The SolarPlex MPPT controller starts pumping from as little as 100 W/m² irradiance — typically 60–90 minutes earlier in the morning and later in the evening than an SF2 on standard 120W panels, which requires ~400 W/m² to start. Over a full growing season this adds meaningfully to total water delivered. A 240W SF2 narrows this gap but Futurepump's own datasheet cautions that 240W panels may shorten motor life in high-radiation markets such as Nigeria — making 120W the appropriate comparison baseline.`});
+  diffs.push({plus:false, text:`<strong>Repair, service and design life.</strong> The SF2 carries a ten-year manufacturer-backed warranty against defects in design, material and workmanship under normal use — though Futurepump's own datasheet cautions: "using higher wattage solar panels in high radiation may shorten the motor life," a direct reference to the 240W panel option. The warranty requires active registration at warranty.futurepump.com. Distributor purchases include free local parts and labour support; direct webshop purchases are also covered but warranty parts are shipped from India at the customer's cost, with no local in-country support. The SolarPlex takes a different approach: it is engineered for indefinite operational life supported by a 5-year maintenance schedule, reflecting the combination of protective motor controls, MPPT optimisation, and advanced metal film capacitors. Metal film capacitors do not fail from burn-out — a common and costly failure mode in older pump designs that rely on electrolytic capacitors. SolarPlex comes with a standard 2-year warranty, automatically extendible to 10 years subject to adherence to normal operating conditions including scheduled servicing. Both pumps offer a complete range of spare parts.`});
+    // Weight: SPX-800-5 is ~9 kg (compact 5-stage centrifugal) vs SF2 20.5 kg piston pump
+    // TODO: confirm exact weight from Impact Pumps datasheet v3.2
+    const SPX_WEIGHT = 9;
+    diffs.push({plus: true, text:`<strong>SolarPlex is lighter.</strong> The SolarPlex pump head weighs approximately ${SPX_WEIGHT} kg — significantly lighter than the SF2’s 20.5 kg piston assembly, making it easier to transport and install. The SF2 is farmer-maintainable with basic tools; SolarPlex benefits from distributor support for servicing.`});
+
+  document.getElementById('diffPanel').innerHTML = `
+    <h3>Key differentiators for this scenario</h3>
+    <div class="diff-list">
+      ${diffs.map(d=>`
+        <div class="diff-item">
+          <div class="diff-icon ${d.plus?'plus':'minus'}">${d.plus?'+':'−'}</div>
+          <div class="diff-text">${d.text}</div>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('calcNote').textContent =
+    `Calculated at ${head} m TDH, ${area} acres, ${depth} mm/day, ${sun} h SF2 effective pumping hours. | SolarPlex: daily output from 1330 Wp datasheet average-day curve — integrates the full solar day via MPPT from ~100 W/m²; unaffected by the hours input above. | SF2: daily output = peak flow × ${sun} h × 0.88 correction factor (120W standard panels). The 0.88 correction reflects that 120W panels require ~400 W/m² irradiance to start the SF2 motor — low-irradiance shoulder hours within the PSH window contribute little to actual output. SolarPlex captures these hours; SF2 does not. | A 240W SF2 narrows the pumping window gap but Futurepump's own datasheet warns this may shorten motor life in high-radiation markets such as Nigeria — making 120W the appropriate comparison baseline. | Prices indicative only — confirm with Impact Pumps and local supplier. SolarPlex FOB China $415 illustrative for African markets.`;
+
+  res.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// Init
+window.addEventListener('load', () => {
+  const defaults = {USD:1, NGN:1600, KES:130, UGX:3700, GHS:12.5};
+  document.getElementById('currency').addEventListener('change', function() {
+    document.getElementById('fxRate').value = defaults[this.value]||1;
+    document.getElementById('fxLabel').textContent = `Exchange rate (USD → ${this.value})`;
+    previewSpxPrice();
+  });
+  document.getElementById('fxRate').addEventListener('input', () => {
+    triUpdate('spx','markup'); triUpdate('sf2','markup');
+  });
+  triUpdate('spx','markup');
+  triUpdate('sf2','markup');
+  calcFuel();
+  // Default to 1 acre / 5m scenario on load
+  applyScenario(1);
+});
+</script>
+</body>
+</html>
